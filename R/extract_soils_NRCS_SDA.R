@@ -437,7 +437,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
   res <- list()
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(locations),
+    nx = length(locations), #TODO: change to `nrow` once locations is "sf"
     chunk_size = chunk_size
   )
 
@@ -769,9 +769,14 @@ extract_soils_NRCS_SDA <- function(
   verbose = FALSE
 ) {
 
+  if (!missing(x)) {
+    x <- rSW2st::as_points(x, to_class = "sf", crs = crs)
+  }
+
   stopifnot(
     !(missing(x) && missing(mukeys)),
-    curl::has_internet()
+    curl::has_internet(),
+    missing(x) || missing(mukeys) || nrow(x) == length(mukeys)
   )
 
   method <- match.arg(method)
@@ -822,7 +827,8 @@ extract_soils_NRCS_SDA <- function(
 
 
   #--- Identify which variables are fixed per COKEY
-  var_stxt <- c("sandtotal_r", "claytotal_r", "silttotal_r")
+  var_stxt3 <- c("sandtotal_r", "claytotal_r", "silttotal_r")
+  var_stxt <- intersect(var_stxt3, colnames(res))
   var_output <- c(
     "dbovendry_r",
     "fragvol_r",
@@ -1065,22 +1071,34 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Convert units & rounding
   # Convert % to fraction
-  var_pct_to_fraction <- c("fragvol_r", var_stxt)
+  var_pct_to_fraction <- intersect(
+    c("fragvol_r", var_stxt3),
+    colnames(res)
+  )
   res[, var_pct_to_fraction] <- res[, var_pct_to_fraction] / 100
 
   # Round texture
   if (is.finite(digits)) {
-    res[, "fragvol_r"] <- round(res[, "fragvol_r"], digits)
 
-    has_vals <-
-      complete.cases(res[, var_stxt]) &
-      apply(res[, var_stxt, drop = FALSE], 1, sum, na.rm = TRUE) > 0
+    if (all(var_stxt3 %in% colnames(res))) {
+      has_vals <-
+        complete.cases(res[, var_stxt3]) &
+        apply(res[, var_stxt3, drop = FALSE], 1, sum, na.rm = TRUE) > 0
 
-    res[has_vals, var_stxt] <- rSW2utils::scale_rounded_by_sum(
-      x = res[has_vals, var_stxt],
-      digits = digits,
-      icolumn_adjust = 3
-    )
+      res[has_vals, var_stxt3] <- rSW2utils::scale_rounded_by_sum(
+        x = res[has_vals, var_stxt3],
+        digits = digits,
+        icolumn_adjust = 3
+      )
+
+      var_others2 <- "fragvol_r"
+
+    } else {
+      var_others2 <- c("fragvol_r", var_stxt)
+    }
+
+    var_others2 <- intersect(var_others2, colnames(res))
+    res[, var_others2] <- round(res[, var_others2], digits)
   }
 
 

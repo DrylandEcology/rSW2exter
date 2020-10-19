@@ -95,15 +95,29 @@ is_NRCS_horizon_organic <- function(x) {
 }
 
 
-#' Determine soil depth
+#' Determine soil depth for \var{NRCS} soil data
 #'
-#' @param x A \code{data.frame}. The result of
-#'   function \code{\link{fetch_soils_from_NRCS_SDA}} that
-#'   returned horizon-level data for a set of \var{mukey} values.
-#' @param target_cokeys A vector. The set of \var{cokey} values for which
-#'   soil depth is to be determined based on \code{x}.
+#' @param x A \code{data.frame} or \code{matrix}.
+#'   Soil horizons/layers are organized in rows
+#'   and soil texture variables in columns.
+#' @param target_site_ids A vector. The unique location identifiers, e.g.,
+#'   \var{cokey} values, for which soil depth is to be determined.
 #' @param restrict_by_ec_or_ph A logical value. Include depth restrictions
-#'   by \code{ph <= 3.5} or \code{ec >= 16}.
+#'   by \code{ph <= 3.5} or \code{ec >= 16}. This option requires additional
+#'   variables.
+#' @param var_site_id A character string. The column name of \code{x} which
+#'   contains the unique location identifiers.
+#' @param var_horizon A character string. The column name of \code{x} which
+#'   contains the horizon/layer numbers where the shallowest horizon/layer
+#'   is number one.
+#' @param var_horizon_lower_depth A character string. The column name of
+#'   \code{x} that contains the lower depth limit of horizons/layers.
+#' @param var_restrictions A vector of character strings. The column names of
+#'   \code{x} that contain depth restrictions, e.g., bedrock.
+#' @param var_soiltexture A vector of character strings. The column names of
+#'   \code{x} that contain the three soil texture variables sand, clay,
+#'   and silt.
+#'
 #'
 #' @return A \code{data.frame} with at least three columns. Each row represents
 #'   one value of \code{target_cokeys}. The columns are: \itemize{
@@ -124,22 +138,31 @@ is_NRCS_horizon_organic <- function(x) {
 #' if (curl::has_internet()) {
 #'   x <- fetch_soils_from_NRCS_SDA(mukeys_unique = c(471168, 1606800))
 #'
-#'   calculate_NRCS_soil_depth(x, restrict_by_ec_or_ph = FALSE)
+#'   calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = FALSE)
 #'
 #'   x2 <- cbind(x, organic = is_NRCS_horizon_organic(x))
-#'   calculate_NRCS_soil_depth(x2, restrict_by_ec_or_ph = TRUE)
+#'   calculate_soil_depth_NRCS(x2, restrict_by_ec_or_ph = TRUE)
 #' }
 #' }
 #'
 #' @export
-calculate_NRCS_soil_depth <- function(x, target_cokeys,
-  restrict_by_ec_or_ph = TRUE
+calculate_soil_depth_NRCS <- function(
+  x,
+  target_site_ids,
+  restrict_by_ec_or_ph = TRUE,
+  var_site_id = "COKEY",
+  var_horizon = "Horizon_No",
+  var_horizon_lower_depth = "hzdepb_r",
+  var_restrictions =
+    c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth"),
+  var_soiltexture = c("sand", "clay", "silt")
 ) {
 
   vars <- c(
-    "COKEY", "Horizon_No", "hzdepb_r", "Horizon_depth",
-    "RootZoneRestriction_depth", "Bedrock_depth",
-    "sandtotal_r", "claytotal_r", "silttotal_r"
+    var_site_id,
+    var_horizon, var_horizon_lower_depth,
+    var_restrictions,
+    var_soiltexture
   )
 
   if (restrict_by_ec_or_ph) {
@@ -149,6 +172,7 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
     )
   }
 
+
   cns <- colnames(x)
 
   for (var in vars) {
@@ -157,23 +181,24 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
     }
   }
 
-  if (missing(target_cokeys)) {
-    target_cokeys <- x[["COKEY"]]
+  if (missing(target_site_ids)) {
+    target_site_ids <- x[, var_site_id]
   }
 
-  # Determine number of soil horizons with complete soil texture values
+  # Determine number of soil horizons with complete/partial soil texture values
   tmp <- aggregate(
     x = apply(
-      x[, c("sandtotal_r", "claytotal_r", "silttotal_r"), drop = FALSE],
+      x[, var_soiltexture, drop = FALSE],
       MARGIN = 1,
       FUN = function(x) sum(!is.na(x))
     ),
-    by = x["COKEY"],
-    FUN = function(x) sum(x == 3)
+    by = list(id = x[, var_site_id]),
+    FUN = function(x) c(complete = sum(x == 3), partial = sum(x > 0))
   )
 
-  ids <- match(target_cokeys, tmp[["COKEY"]], nomatch = NA)
-  target_complete_soiltexture <- tmp[ids, "x"]
+  ids <- match(target_site_ids, tmp[["id"]], nomatch = NA)
+  target_complete_soiltexture <- tmp[["x"]][ids, "complete"]
+  target_partial_soiltexture <- tmp[["x"]][ids, "partial"]
 
 
   # Calculate additional restrictions
@@ -189,7 +214,7 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
 
     tmp <- by(
       data = x,
-      INDICES = x[, "COKEY"],
+      INDICES = x[, var_site_id],
       FUN = function(xc) {
         is_ec_restricted <-
           xc[, "check"] & !is.na(xc[, "ec_r"]) & xc[, "ec_r"] >= 16
@@ -206,7 +231,7 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
     )
 
     restriction2_depth <- matrix(
-      data = unlist(tmp[match(x[["COKEY"]], names(tmp))]),
+      data = unlist(tmp[match(x[, var_site_id], names(tmp))]),
       ncol = 2,
       byrow = TRUE
     )
@@ -215,35 +240,34 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
 
   # Convert to wide format (one row for each point location)
   tmp_depths <- reshape2::acast(
-    data = x[, c("Horizon_No", "COKEY", "hzdepb_r")],
-    formula = COKEY ~ Horizon_No,
-    value.var = "hzdepb_r"
+    data = as.data.frame(
+      x[, c(var_site_id, var_horizon, var_horizon_lower_depth)]
+    ),
+    formula = formula(paste(var_site_id, "~", var_horizon)),
+    value.var = var_horizon_lower_depth
   )
 
-  ids <- match(target_cokeys, rownames(tmp_depths), nomatch = NA)
-  locs_table_depths <- tmp_depths[ids, ]
+  ids <- match(target_site_ids, rownames(tmp_depths), nomatch = NA)
+  locs_table_depths <- tmp_depths[ids, , drop = FALSE]
   colnames(locs_table_depths) <- paste0("depth_L", colnames(locs_table_depths))
 
 
   # Determine soil depth as depth of shallowest restriction
-  soil_depth_cm <- pmin(
-    x[["Horizon_depth"]],
-    x[["RootZoneRestriction_depth"]],
-    x[["Bedrock_depth"]],
+  tmp <- x[, var_restrictions, drop = FALSE]
+
+  if (restrict_by_ec_or_ph) {
+    tmp <- cbind(x, restriction2_depth)
+  }
+
+  soil_depth_cm <- apply(
+    X = tmp,
+    MARGIN = 1,
+    FUN = min,
     na.rm = TRUE
   )
 
-  if (restrict_by_ec_or_ph) {
-    soil_depth_cm <- pmin(
-      soil_depth_cm,
-      restriction2_depth[, 1],
-      restriction2_depth[, 2],
-      na.rm = TRUE
-    )
-  }
-
-  ids <- match(target_cokeys, x[["COKEY"]], nomatch = NA)
-  soil_depth_cm <- round(soil_depth_cm)[ids]
+  ids <- match(target_site_ids, x[, var_site_id], nomatch = NA)
+  soil_depth_cm <- unname(round(soil_depth_cm)[ids])
 
 
   # Case:
@@ -251,7 +275,7 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
   #   * no complete soil texture available
   # ==> adjust soil depth to 0
   ids <-
-    is.na(soil_depth_cm) &
+    !is.finite(soil_depth_cm) &
     target_complete_soiltexture == 0
   soil_depth_cm[ids] <- 0
 
@@ -310,6 +334,20 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
   locs_table_depths[ids, "SoilDepth_cm"] <- 0
 
   # Case:
+  #  * soil_depth > 0
+  #  * target_partial_soiltexture == 0
+  # ==> adjust soil_depth to 0
+  ids <- apply(
+    X = cbind(
+      target_partial_soiltexture,
+      locs_table_depths
+    ),
+    MARGIN = 1,
+    FUN = function(x) x[1] == 0 & x[2] > 0
+  )
+  locs_table_depths[ids, "SoilDepth_cm"] <- 0
+
+  # Case:
   #   * soil_depth == 0 and horizon_depth L1 > 0 and
   #   * target_complete_soiltexture > 0
   # ==> adjust soil_depth to depth_L1
@@ -332,7 +370,7 @@ calculate_NRCS_soil_depth <- function(x, target_cokeys,
   # Put together for output
   cbind(
     N_horizons = apply(
-      X = locs_table_depths[, -1],
+      X = locs_table_depths[, -1, drop = FALSE],
       MARGIN = 1,
       function(x) sum(!is.na(x))
     ),
@@ -1006,11 +1044,19 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Calculate soil depth of profile (per COKEY)
   # and convert depth table to wide-format for output
-  locs_table_depths <- calculate_NRCS_soil_depth(
+  locs_table_depths <- calculate_soil_depth_NRCS(
     x = res,
-    target_cokeys = locs_keys[, "cokey"],
-    restrict_by_ec_or_ph = restrict_by_ec_or_ph
+    target_site_ids = locs_keys[, "cokey"],
+    restrict_by_ec_or_ph = restrict_by_ec_or_ph,
+    var_site_id = "COKEY",
+    var_horizon = "Horizon_No",
+    var_horizon_lower_depth = "hzdepb_r",
+    var_restrictions =
+      c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth"),
+    var_soiltexture = c("sandtotal_r", "claytotal_r", "silttotal_r")
   )
+
+
 
   # Transfer final soil depth and (potentially adjusted depth_L1)
   ids <- match(res[["COKEY"]], rownames(locs_table_depths))

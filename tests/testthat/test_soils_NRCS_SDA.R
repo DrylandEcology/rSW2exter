@@ -1,7 +1,7 @@
 context("Extract topographic data")
 
 
-test_that("Calculate NRCS soil data", {
+test_that("Calculate NRCS organic soil horizons", {
   x <- data.frame(
     taxorder = c("Histosols", "x", "x", "x", "x", "x", NA),
     taxsubgrp = c("x", "histic", "x", "x", "x", "x", NA),
@@ -14,7 +14,51 @@ test_that("Calculate NRCS soil data", {
     is_NRCS_horizon_organic(x),
     c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, NA)
   )
+})
 
+
+test_that("Calculate NRCS soil depth", {
+  N <- 11
+  soildepth0 <- 38
+  var_stxt3 <- c("sand", "clay", "silt")
+
+  x0 <- data.frame(
+    id = rep(1, N),
+    layer_depth = c(5, 10, 20, 30, 40, 60, 80, 100, 150, 200, 250),
+    Horizon_No = seq_len(N),
+    rockdepm = soildepth0,
+    sand = c(51, 51, 50, 46, 47, 48, NA, NA, NA, NA, NA),
+    clay = c(16, 16, 17, 19, 18, 18, NA, NA, NA, NA, NA),
+    silt = c(33, 33, 33, 35, 35, 34, NA, NA, NA, NA, NA)
+  )
+
+  for (k in c(6, 1)) {
+    x <- x0
+    x[k:nrow(x), var_stxt3] <- NA
+    soildepth <- if (k > 1) soildepth0 else 0
+    id_sd <- findInterval(soildepth, c(1, x[, "layer_depth"]))
+
+    locs_table_depths <- calculate_soil_depth_NRCS(
+      x,
+      target_site_ids = 1,
+      restrict_by_ec_or_ph = FALSE,
+      var_site_id = "id",
+      var_horizon = "Horizon_No",
+      var_horizon_lower_depth = "layer_depth",
+      var_restrictions = "rockdepm",
+      var_soiltexture = var_stxt3
+    )
+
+    expect_equal(locs_table_depths[1, "N_horizons"], id_sd)
+    expect_equal(locs_table_depths[1, "SoilDepth_cm"], soildepth)
+    expect_equal(locs_table_depths[1, 2 + id_sd], soildepth)
+    if (k > 1) {
+      expect_equivalent(
+        locs_table_depths[1, 2 + 1:(id_sd - 1)],
+        x[1:(id_sd - 1), "layer_depth"]
+      )
+    }
+  }
 })
 
 
@@ -47,10 +91,10 @@ test_that("Extract soils from NRCS SDA", {
   expect_true(all(x[, "organic"] %in% c(NA, FALSE, TRUE)))
 
   expect_silent(
-    sd1 <- calculate_NRCS_soil_depth(x, restrict_by_ec_or_ph = FALSE)
+    sd1 <- calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = FALSE)
   )
   expect_silent(
-    sd2 <- calculate_NRCS_soil_depth(x, restrict_by_ec_or_ph = TRUE)
+    sd2 <- calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = TRUE)
   )
 
   expect_true(all(expected_depth_variables %in% colnames(sd1)))

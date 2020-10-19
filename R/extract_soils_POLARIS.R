@@ -235,7 +235,7 @@ fetch_soils_from_POLARIS <- function(x, crs,
   #--- Prepare result object
   res <- array(
     NA,
-    dim = c(length(locations), length(vars), length(depths)),
+    dim = c(nrow(locations), length(vars), length(depths)),
     dimnames = list(NULL, vars, depths)
   )
 
@@ -264,7 +264,7 @@ fetch_soils_from_POLARIS <- function(x, crs,
         )
 
       } else {
-        stop("POLARIS data ", shQuote(basename), " not found.")
+        stop("POLARIS data ", shQuote(basename(ftmp)), " not found.")
       }
     }
   }
@@ -407,7 +407,7 @@ extract_soils_POLARIS <- function(
 
   method <- match.arg(method)
 
-  locations <- rSW2st::as_points(x, to_pkg = "sf", crs = crs)
+  locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
 
 
   # Extract values from POLARIS
@@ -533,23 +533,33 @@ extract_soils_POLARIS <- function(
 
   #--- Convert units & rounding
   # Convert % to fraction
-  res[, var_stxt, ] <- res[, var_stxt, ] / 100
+  var_pct_to_fraction <- intersect(var_stxt, dimnames(res)[[2]])
+  res[, var_pct_to_fraction, ] <- res[, var_pct_to_fraction, ] / 100
 
   # Round
   if (is.finite(digits)) {
-    res[, var_others, ] <- round(res[, var_others, ], digits)
 
-    for (k in seq_len(N_layers)) {
-      has_vals <-
-        complete.cases(res[, var_stxt, k]) &
-        apply(res[, var_stxt, k, drop = FALSE], 1, sum, na.rm = TRUE) > 0
+    if (all(var_stxt3 %in% dimnames(res)[[2]])) {
+      for (k in seq_len(N_layers)) {
+        has_vals <-
+          complete.cases(res[, var_stxt3, k]) &
+          apply(res[, var_stxt3, k, drop = FALSE], 1, sum, na.rm = TRUE) > 0
 
-      res[has_vals, var_stxt, k] <- rSW2utils::scale_rounded_by_sum(
-        x = res[has_vals, var_stxt, k],
-        digits = digits,
-        icolumn_adjust = 3
-      )
+        res[has_vals, var_stxt3, k] <- rSW2utils::scale_rounded_by_sum(
+          x = res[has_vals, var_stxt3, k],
+          digits = digits,
+          icolumn_adjust = 3
+        )
+      }
+
+      var_others2 <- var_others
+
+    } else {
+      var_others2 <- c(var_others, var_stxt)
     }
+
+    var_others2 <- intersect(var_others2, dimnames(res)[[2]])
+    res[, var_others2, ] <- round(res[, var_others2, ], digits)
   }
 
 
@@ -574,7 +584,7 @@ extract_soils_POLARIS <- function(
     SoilDepth_cm = max(layer_depths),
     matrix(
       data = layer_depths,
-      nrow = length(locations),
+      nrow = nrow(locations),
       ncol = N_layers,
       byrow = TRUE,
       dimnames = list(NULL, paste0("depth_L", seq_len(N_layers)))

@@ -641,11 +641,31 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   function \code{\link{is_NRCS_horizon_organic}}. See details.
 #' @param replace_missing_fragvol_with_zero A character string. Method
 #'   indicating how missing/null values of rock/gravel fragment fractions
-#'   should be interpreted. See details.
+#'   should be interpreted;
+#'   passed to \code{\link[rSW2data]{set_missing_soils_to_value}}.
+#'   The options are one of
+#'   \describe{
+#'     \item{\var{"all"}}{
+#'       Missing/null values of rack/gravel fragments are
+#'       replaced by 0 %.
+#'       See also argument \var{nullFragsAreZero} of
+#'       function \code{\link[soilDB]{fetchSDA}}.
+#'     }
+#'     \item{\var{"at_surface"}}{
+#'       Missing/null values of rack/gravel fragments are
+#'       replaced by 0 % in the shallowest horizon only.
+#'       Note, remaining missing values in deeper horizons
+#'       can subsequently be imputed by argument \code{impute}.
+#'     }
+#'     \item{\var{"none"}}{
+#'        Missing/null values remain unmodified unless
+#'        argument \code{impute} is activated.
+#'     }
+#'   }
 #' @param estimate_missing_bulkdensity A logical value. Estimate missing
 #'   bulk density values from saturated water content and gravel volume.
 #'   See \code{\link[rSW2data]{estimate_bulkdensity}}.
-#' @param impute_locf A logical value. Impute missing values with a
+#' @param impute A logical value. Impute missing values with a
 #'   shallow-depth value carried deeper approach (in analogy to \var{LOCF}).
 #'   Consequently, missing values in the shallowest horizon are not imputed.
 #'   See \code{\link[rSW2utils]{impute_df}}.
@@ -653,7 +673,7 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   variables are rounded. Skip rounding if \code{NA} or \code{NULL}.
 #' @param verbose A logical value.
 #' @inheritParams fetch_soils_from_NRCS_SDA
-#' @inheritParams calculate_NRCS_soil_depth
+#' @inheritParams calculate_soil_depth_NRCS
 #'
 #' @section Details: \var{NRCS} soil datasets \var{SSURGO} and \var{STATSGO} are
 #'   organized in soil map units \var{mukey} that are
@@ -686,27 +706,6 @@ fetch_soils_from_NRCS_SDA <- function(
 #'     }
 #'     \item{\var{"none"}}{
 #'        Horizons are not modified.
-#'     }
-#'   }
-#'
-#' @section Details:
-#'   The argument \code{replace_missing_fragvol_with_zero} is one of
-#'   \describe{
-#'     \item{\var{"all"}}{
-#'       Missing/null values of rack/gravel fragments are
-#'       replaced by 0 %.
-#'       See also argument \var{nullFragsAreZero} of
-#'       function \code{\link[soilDB]{fetchSDA}}.
-#'     }
-#'     \item{\var{"at_surface"}}{
-#'       Missing/null values of rack/gravel fragments are
-#'       replaced by 0 % in the shallowest horizon only.
-#'       Note, remaining missing values in deeper horizons
-#'       can subsequently be imputed by argument \code{impute_locf}.
-#'     }
-#'     \item{\var{"none"}}{
-#'        Missing/null values remain unmodified unless
-#'        argument \code{impute_locf} is activated.
 #'     }
 #'   }
 #'
@@ -746,7 +745,7 @@ fetch_soils_from_NRCS_SDA <- function(
 #'     replace_missing_fragvol_with_zero = "at_surface",
 #'     estimate_missing_bulkdensity = TRUE,
 #'     restrict_by_ec_or_ph = FALSE,
-#'     impute_locf = TRUE,
+#'     impute = TRUE,
 #'     progress_bar = TRUE,
 #'     verbose = TRUE
 #'   )
@@ -763,7 +762,7 @@ extract_soils_NRCS_SDA <- function(
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
   restrict_by_ec_or_ph = TRUE,
-  impute_locf = FALSE,
+  impute = FALSE,
   digits = 3L,
   chunk_size = 1000L,
   progress_bar = FALSE,
@@ -858,42 +857,24 @@ extract_soils_NRCS_SDA <- function(
 
 
   #--- Deduce soil texture iff one of three values is missing
-  res <- rSW2data::deduce_complete_soil_texture(
-    x = res,
-    var_stxt = var_stxt,
-    val_total = 100,
-    ignore_le = 5
-  )
+  if (all(var_stxt3 %in% colnames(res))) {
+      res <- rSW2data::deduce_complete_soil_texture(
+      x = res,
+      var_stxt = var_stxt,
+      val_total = 100,
+      ignore_le = 5
+    )
+  }
 
 
   #--- Interpret missing values for rock/gravel fragments as 0 %
-  replace_missing_fragvol_with_zero <- match.arg(
-    replace_missing_fragvol_with_zero
-  )
-
-  is_missing_fragvol <- !is.finite(res[, "fragvol_r"])
-
-  if (any(is_missing_fragvol)) {
-    if (replace_missing_fragvol_with_zero == "all") {
-      res[is_missing_fragvol, "fragvol_r"] <- 0
-
-    } else if (replace_missing_fragvol_with_zero == "at_surface") {
-      is_missing_fragvol <- is_missing_fragvol & res[, "Horizon_No"] == 1
-      res[is_missing_fragvol, "fragvol_r"] <- 0
-
-    } else {
-      res[is_missing_fragvol, "fragvol_r"] <- NA
-    }
-  }
-
-  if (
-    verbose &&
-    replace_missing_fragvol_with_zero %in% c("all", "at_surface") &&
-    (n_missing_fragvol <- sum(is_missing_fragvol)) > 0
-  ) {
-    message(
-      "Missing values of rock/gravel fragments set to zero: n = ",
-      n_missing_fragvol
+  if ("fragvol_r" %in% colnames(res)) {
+    res <- rSW2data::set_missing_soils_to_value(
+      x = res,
+      variable = "fragvol_r",
+      value = 0,
+      where = match.arg(replace_missing_fragvol_with_zero),
+      verbose = verbose
     )
   }
 
@@ -1068,55 +1049,17 @@ extract_soils_NRCS_SDA <- function(
     locs_table_depths[ids[is_shallowest], "depth_L1"]
 
 
-  #--- Last step: impute remaining missing values per COKEY
+  #--- Last step: impute remaining missing values per COKEY/location
   # by shallow-depth value carried deeper (in analogy to LOCF)
   # but do not impute missing values in the shallowest horizon
-  if (impute_locf) {
-
-    if (verbose) {
-      is_shallowest <- res[, "Horizon_No"] == 1
-      n_imped_vals <- sum(is.na(res[!is_shallowest, var_output]))
-      is_imped_hzs <- apply(res[!is_shallowest, var_output], 1, anyNA)
-      n_imped_hzs <- sum(is_imped_hzs)
-      n_imped_cokeys <- length(
-        unique(res[!is_shallowest, "COKEY"][is_imped_hzs])
-      )
-    }
-
-    tmp <- by(
-      data = res[, var_output],
-      INDICES = res[["COKEY"]],
-      FUN = function(x) {
-        if (nrow(x) > 1) {
-          x_shallowest <- x[1, ] # don't impute first/shallowest horizon
-
-          x <- suppressMessages(
-            rSW2utils::impute_df(x, imputation_type = "locf")
-          )
-
-          x[1, ] <- x_shallowest
-        }
-
-        x
-      },
-      simplify = FALSE
+  if (impute) {
+    res <- rSW2data::impute_soils(
+      x = res,
+      var_site_id = "COKEY",
+      var_horizon = "Horizon_No",
+      var_values = var_output,
+      verbose = verbose
     )
-
-    ids <- match(unique(res[["COKEY"]]), names(tmp))
-    res[, var_output] <- do.call(rbind, tmp[ids])
-
-    if (verbose) {
-      n_missing <- sum(is.na(res[, var_output]))
-
-      message(
-        "Imputed values for n = ", n_imped_cokeys, " COKEYs ",
-        "in n = ", n_imped_hzs, " soil horizons/layers ",
-        "for n = ", n_imped_vals, " values",
-        if (n_missing > 0) {
-          paste0("; remaining missing values n = ", n_missing)
-        } else "."
-      )
-    }
   }
 
 
@@ -1179,7 +1122,7 @@ extract_soils_NRCS_SDA <- function(
       replace_missing_fragvol_with_zero = replace_missing_fragvol_with_zero,
       estimate_missing_bulkdensity = estimate_missing_bulkdensity,
       restrict_by_ec_or_ph = restrict_by_ec_or_ph,
-      impute_locf = impute_locf,
+      impute = impute,
       digits = digits,
       chunk_size = chunk_size,
       progress_bar = progress_bar,

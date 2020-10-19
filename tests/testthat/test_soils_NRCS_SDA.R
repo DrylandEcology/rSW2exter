@@ -153,7 +153,7 @@ test_that("Extract soils from NRCS SDA", {
     replace_missing_fragvol_with_zero = "at_surface",
     estimate_missing_bulkdensity = TRUE,
     restrict_by_ec_or_ph = FALSE,
-    impute_locf = TRUE,
+    impute = TRUE,
     progress_bar = FALSE,
     verbose = FALSE
   )

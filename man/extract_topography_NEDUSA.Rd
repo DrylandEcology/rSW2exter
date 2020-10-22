@@ -105,7 +105,7 @@ if (requireNamespace("FedData") && curl::has_internet()) {
 
   locations <- rSW2st::as_points(
     matrix(data = c(-120.325, -120.328, 43.328, 43.242), nrow = 2),
-    to_class = "sp",
+    to_class = "sf",
     crs = 4326
   )
   extent_polygon <- FedData::polygon_from_extent(

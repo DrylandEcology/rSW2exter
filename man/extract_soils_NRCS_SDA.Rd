@@ -14,7 +14,7 @@ extract_soils_NRCS_SDA(
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
   restrict_by_ec_or_ph = TRUE,
-  impute_locf = FALSE,
+  impute = FALSE,
   digits = 3L,
   chunk_size = 1000L,
   progress_bar = FALSE,
@@ -56,16 +56,37 @@ function \code{\link{is_NRCS_horizon_organic}}. See details.}
 
 \item{replace_missing_fragvol_with_zero}{A character string. Method
 indicating how missing/null values of rock/gravel fragment fractions
-should be interpreted. See details.}
+should be interpreted;
+passed to \code{\link[rSW2data]{set_missing_soils_to_value}}.
+The options are one of
+\describe{
+  \item{\var{"all"}}{
+    Missing/null values of rack/gravel fragments are
+    replaced by 0 %.
+    See also argument \var{nullFragsAreZero} of
+    function \code{\link[soilDB]{fetchSDA}}.
+  }
+  \item{\var{"at_surface"}}{
+    Missing/null values of rack/gravel fragments are
+    replaced by 0 % in the shallowest horizon only.
+    Note, remaining missing values in deeper horizons
+    can subsequently be imputed by argument \code{impute}.
+  }
+  \item{\var{"none"}}{
+     Missing/null values remain unmodified unless
+     argument \code{impute} is activated.
+  }
+}}
 
 \item{estimate_missing_bulkdensity}{A logical value. Estimate missing
 bulk density values from saturated water content and gravel volume.
 See \code{\link[rSW2data]{estimate_bulkdensity}}.}
 
 \item{restrict_by_ec_or_ph}{A logical value. Include depth restrictions
-by \code{ph <= 3.5} or \code{ec >= 16}.}
+by \code{ph <= 3.5} or \code{ec >= 16}. This option requires additional
+variables.}
 
-\item{impute_locf}{A logical value. Impute missing values with a
+\item{impute}{A logical value. Impute missing values with a
 shallow-depth value carried deeper approach (in analogy to \var{LOCF}).
 Consequently, missing values in the shallowest horizon are not imputed.
 See \code{\link[rSW2utils]{impute_df}}.}
@@ -119,27 +140,6 @@ Extract soil information from the Soil Data Access \var{SDA} service by
        Horizons are not modified.
     }
   }
-
-
-  The argument \code{replace_missing_fragvol_with_zero} is one of
-  \describe{
-    \item{\var{"all"}}{
-      Missing/null values of rack/gravel fragments are
-      replaced by 0 %.
-      See also argument \var{nullFragsAreZero} of
-      function \code{\link[soilDB]{fetchSDA}}.
-    }
-    \item{\var{"at_surface"}}{
-      Missing/null values of rack/gravel fragments are
-      replaced by 0 % in the shallowest horizon only.
-      Note, remaining missing values in deeper horizons
-      can subsequently be imputed by argument \code{impute_locf}.
-    }
-    \item{\var{"none"}}{
-       Missing/null values remain unmodified unless
-       argument \code{impute_locf} is activated.
-    }
-  }
 }
 
 \section{Notes}{
@@ -178,7 +178,7 @@ if (curl::has_internet()) {
     replace_missing_fragvol_with_zero = "at_surface",
     estimate_missing_bulkdensity = TRUE,
     restrict_by_ec_or_ph = FALSE,
-    impute_locf = TRUE,
+    impute = TRUE,
     progress_bar = TRUE,
     verbose = TRUE
   )

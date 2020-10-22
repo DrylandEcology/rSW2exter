@@ -880,6 +880,7 @@ extract_soils_NRCS_SDA <- function(
       variable = "fragvol_r",
       value = 0,
       where = match.arg(replace_missing_fragvol_with_zero),
+      horizon = "Horizon_No",
       verbose = verbose
     )
   }

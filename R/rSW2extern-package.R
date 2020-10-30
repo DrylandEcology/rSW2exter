@@ -35,6 +35,6 @@ rSW2_glovars <- new.env()
 
 ##------ Import from other packages
 #' @import methods
-#' @importFrom stats aggregate coef complete.cases cor cov var fitted median
-#'   na.exclude na.omit predict quantile sd weighted.mean
+#' @importFrom stats aggregate coef complete.cases cor cov var fitted formula
+#'   median na.exclude na.omit predict quantile sd weighted.mean
 NULL

@@ -100,6 +100,9 @@ prepare_script_for_Miller1998_CONUSSoil <- function(
 #'
 #' @return This function is called for its side effects of creating
 #'   \var{GeoTIFFs} if they don't already exist.
+#'   It returns invisibly a logical vector for each value of \code{vars} where
+#'   \code{TRUE} indicates that the conditioned file already exists or was
+#'   successfully created.
 #'
 #' @export
 create_conditioned_Miller1998_CONUSSoil <- function(
@@ -112,31 +115,48 @@ create_conditioned_Miller1998_CONUSSoil <- function(
 
   stopifnot(vars %in% names(lower_limits_by_vars))
 
+  res <- rep(FALSE, length(vars))
+  names(res) <- vars
+
   for (k in seq_along(vars)) {
     ftmp_orig <- file.path(path, paste0(vars[k], ".tif"))
-    limit <- as.integer(lower_limits_by_vars[vars[k]])
-    ftmp_cond <- filepath_Miller1998_CONUSSoil(path, vars[k], limit)
 
-    if (!file.exists(ftmp_cond)) {
-      fun_cond <- compiler::cmpfun(
-        function(x) ifelse(!is.na(x) & x > limit, x, NA)
-      )
+    if (file.exists(ftmp_orig)) {
+      limit <- as.integer(lower_limits_by_vars[vars[k]])
+      ftmp_cond <- filepath_Miller1998_CONUSSoil(path, vars[k], limit)
 
-      tmp <- try(raster::calc(
-        x = raster::brick(ftmp_orig),
-        fun = fun_cond,
-        filename = ftmp_cond
-      ))
-
-      if (inherits(tmp, "try-error")) {
-        warning(
-          "Was not able to calculate and create conditioned CONUSSoil: ",
-          shQuote(basename(ftmp_cond))
+      if (!file.exists(ftmp_cond)) {
+        fun_cond <- compiler::cmpfun(
+          function(x) ifelse(!is.na(x) & x > limit, x, NA)
         )
+
+        tmp <- try(raster::calc(
+          x = raster::brick(ftmp_orig),
+          fun = fun_cond,
+          filename = ftmp_cond
+        ))
+
+        if (inherits(tmp, "try-error")) {
+          warning(
+            "Was not able to calculate and create conditioned CONUSSoil: ",
+            shQuote(basename(ftmp_cond))
+          )
+        } else {
+          res[k] <- TRUE
+        }
+      } else {
+        res[k] <- TRUE
       }
+
+    } else {
+      warning(
+        "CONUSSoil file not able to locate: ",
+        shQuote(basename(ftmp_orig))
+      )
     }
   }
 
+  invisible(res)
 }
 
 
@@ -173,7 +193,9 @@ filepath_Miller1998_CONUSSoil <- function(path, var, lower_limit) {
 #' path_conussoil <- dirname(script_to_download_conussoil)
 #'
 #' ## Mask out unrealistic variable values
-#' create_conditioned_Miller1998_CONUSSoil(path = path_conussoil)
+#' has_CONUSSoil_cond <- create_conditioned_Miller1998_CONUSSoil(
+#'   path = path_conussoil
+#' )
 #'
 #' ## Check that we have CONUSSoil data
 #' has_CONUSSoil <- check_Miller1998_CONUSSoil(path = path_conussoil)
@@ -324,7 +346,9 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
 #' path_conussoil <- dirname(script_to_download_conussoil)
 #'
 #' ## Mask out unrealistic variable values
-#' create_conditioned_Miller1998_CONUSSoil(path = path_conussoil)
+#' has_CONUSSoil_cond <- create_conditioned_Miller1998_CONUSSoil(
+#'   path = path_conussoil
+#' )
 #'
 #' ## Check that we have CONUSSoil data
 #' has_CONUSSoil <- isTRUE(all(

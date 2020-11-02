@@ -26,6 +26,9 @@ masked out, i.e., set to \code{NA}.}
 \value{
 This function is called for its side effects of creating
   \var{GeoTIFFs} if they don't already exist.
+  It returns invisibly a logical vector for each value of \code{vars} where
+  \code{TRUE} indicates that the conditioned file already exists or was
+  successfully created.
 }
 \description{
 This function creates new \var{CONUSSoil-GeoTIFFs} where

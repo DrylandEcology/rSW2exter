@@ -37,7 +37,9 @@ script_to_download_conussoil <- prepare_script_for_Miller1998_CONUSSoil()
 path_conussoil <- dirname(script_to_download_conussoil)
 
 ## Mask out unrealistic variable values
-create_conditioned_Miller1998_CONUSSoil(path = path_conussoil)
+has_CONUSSoil_cond <- create_conditioned_Miller1998_CONUSSoil(
+  path = path_conussoil
+)
 
 ## Check that we have CONUSSoil data
 has_CONUSSoil <- check_Miller1998_CONUSSoil(path = path_conussoil)

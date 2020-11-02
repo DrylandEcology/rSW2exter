@@ -81,6 +81,10 @@ test_that("Extract soils from NRCS SDA", {
     "ref", "table_keys", "table_depths", "table_texture"
   )
 
+  var_restrictions <-
+    c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth")
+  var_soiltexture <- c("sandtotal_r", "claytotal_r", "silttotal_r")
+
 
   x <- fetch_soils_from_NRCS_SDA(mukeys_unique = mukeys)
 
@@ -91,10 +95,26 @@ test_that("Extract soils from NRCS SDA", {
   expect_true(all(x[, "organic"] %in% c(NA, FALSE, TRUE)))
 
   expect_silent(
-    sd1 <- calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = FALSE)
+    sd1 <- calculate_soil_depth_NRCS(
+      x,
+      restrict_by_ec_or_ph = FALSE,
+      var_site_id = "COKEY",
+      var_horizon = "Horizon_No",
+      var_horizon_lower_depth = "hzdepb_r",
+      var_restrictions = var_restrictions,
+      var_soiltexture = var_soiltexture
+    )
   )
   expect_silent(
-    sd2 <- calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = TRUE)
+    sd2 <- calculate_soil_depth_NRCS(
+      x,
+      restrict_by_ec_or_ph = TRUE,
+      var_site_id = "COKEY",
+      var_horizon = "Horizon_No",
+      var_horizon_lower_depth = "hzdepb_r",
+      var_restrictions = var_restrictions,
+      var_soiltexture = var_soiltexture
+    )
   )
 
   expect_true(all(expected_depth_variables %in% colnames(sd1)))

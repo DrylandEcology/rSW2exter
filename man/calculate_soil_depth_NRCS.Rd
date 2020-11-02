@@ -59,12 +59,22 @@ Determine soil depth for \var{NRCS} soil data
 \examples{
 \dontrun{
 if (curl::has_internet()) {
+  var_stxt3 <- c("sandtotal_r", "claytotal_r", "silttotal_r")
+
   x <- fetch_soils_from_NRCS_SDA(mukeys_unique = c(471168, 1606800))
 
-  calculate_soil_depth_NRCS(x, restrict_by_ec_or_ph = FALSE)
+  calculate_soil_depth_NRCS(
+    x,
+    restrict_by_ec_or_ph = FALSE,
+    var_soiltexture = var_stxt3
+  )
 
   x2 <- cbind(x, organic = is_NRCS_horizon_organic(x))
-  calculate_soil_depth_NRCS(x2, restrict_by_ec_or_ph = TRUE)
+  calculate_soil_depth_NRCS(
+    x2,
+    restrict_by_ec_or_ph = TRUE,
+    var_soiltexture = var_stxt3
+  )
 }
 }
 

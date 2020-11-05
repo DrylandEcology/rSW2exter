@@ -874,7 +874,7 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Deduce soil texture iff one of three values is missing
   if (all(var_stxt3 %in% colnames(res))) {
-      res <- rSW2data::deduce_complete_soil_texture(
+    res <- rSW2data::deduce_complete_soil_texture(
       x = res,
       var_stxt = var_stxt,
       val_total = 100,
@@ -1126,7 +1126,7 @@ extract_soils_NRCS_SDA <- function(
   )
 
   ids <- match(locs_keys[, "cokey"], rownames(tmp_texture), nomatch = NA)
-  locs_table_texture <- tmp_texture[ids, ]
+  locs_table_texture <- tmp_texture[ids, , drop = FALSE]
 
   colnames(locs_table_texture) <- sapply(
     X = strsplit(colnames(locs_table_texture), split = "_"),

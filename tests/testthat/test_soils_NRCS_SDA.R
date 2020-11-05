@@ -14,6 +14,11 @@ test_that("Calculate NRCS organic soil horizons", {
     is_NRCS_horizon_organic(x),
     c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, NA)
   )
+
+  expect_equal(
+    is_NRCS_horizon_organic(x[1, , drop = FALSE]),
+    FALSE
+  )
 })
 
 
@@ -77,9 +82,8 @@ test_that("Extract soils from NRCS SDA", {
 
   expected_soil_variables <- c("MUKEY", "COKEY", "Horizon_No")
   expected_depth_variables <- c("N_horizons", "SoilDepth_cm")
-  expected_obj_variables <- c(
-    "ref", "table_keys", "table_depths", "table_texture"
-  )
+  expected_obj_results <- c("table_keys", "table_depths", "table_texture")
+  expected_obj_variables <- c("ref", expected_obj_results)
 
   var_restrictions <-
     c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth")
@@ -140,10 +144,21 @@ test_that("Extract soils from NRCS SDA", {
 
 
   # Example 1: extract soils by mukey values
+  soils1a <- extract_soils_NRCS_SDA(mukeys = mukeys[1])
   soils1 <- extract_soils_NRCS_SDA(mukeys = mukeys)
 
+  for (kelem in expected_obj_results) {
+    expect_equal(soils1a[[kelem]], soils1[[kelem]][1, , drop = FALSE])
+  }
+
   # Example 2: extract soils by geographic location
+  soils2a <- suppressWarnings(extract_soils_NRCS_SDA(x = locations[1, ]))
   soils2 <- suppressWarnings(extract_soils_NRCS_SDA(x = locations))
+
+  for (kelem in expected_obj_results) {
+    expect_equal(soils2a[[kelem]], soils2[[kelem]][1, , drop = FALSE])
+  }
+
 
   expect_equal(soils1, soils2)
   expect_named(soils1, expected_obj_variables)

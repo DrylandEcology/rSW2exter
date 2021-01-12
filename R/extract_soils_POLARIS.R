@@ -476,18 +476,22 @@ extract_soils_POLARIS <- function(
       } else {
         tmp <- fix_criteria[["texture"]]
 
+        is_missing <- apply(res[, var_stxt3, , drop = FALSE], 1, anyNA)
+
         is_bad_texture <- apply(
-          X = apply(res[, var_stxt3, ], c(1, 3), sum),
+          X = apply(res[, var_stxt3, , drop = FALSE], c(1, 3), sum),
           MARGIN = 1,
           FUN = function(x) {
             any(do.call(tmp[["op"]], args = list(x, tmp[["value"]])))
           }
         )
 
-        if (any(is_bad_texture)) {
-          res[is_bad_texture, var_stxt3, ] <- fetch_soils_from_POLARIS(
+        ids_fix_with_buffer <- which(is_missing | is_bad_texture)
+
+        if (length(ids_fix_with_buffer) > 0) {
+          res[ids_fix_with_buffer, var_stxt3, ] <- fetch_soils_from_POLARIS(
             path = path,
-            x = locations[is_bad_texture, ],
+            x = locations[ids_fix_with_buffer, , drop = FALSE],
             crs = crs,
             vars = var_stxt3,
             stat = stat,
@@ -506,6 +510,8 @@ extract_soils_POLARIS <- function(
     for (k in seq_along(check_vars)) {
       tmp <- fix_criteria[[check_vars[k]]]
 
+      is_missing <- apply(res[, check_vars[k], , drop = FALSE], 1, anyNA)
+
       is_bad <- apply(
         X = res[, check_vars[k], , drop = FALSE],
         MARGIN = 1,
@@ -514,10 +520,12 @@ extract_soils_POLARIS <- function(
         }
       )
 
-      if (any(is_bad)) {
-        res[is_bad, check_vars[k], ] <- fetch_soils_from_POLARIS(
+      ids_fix_with_buffer <- which(is_missing | is_bad)
+
+      if (length(ids_fix_with_buffer) > 0) {
+        res[ids_fix_with_buffer, check_vars[k], ] <- fetch_soils_from_POLARIS(
           path = path,
-          x = locations[is_bad, ],
+          x = locations[ids_fix_with_buffer, , drop = FALSE],
           crs = crs,
           vars = check_vars[k],
           stat = stat,

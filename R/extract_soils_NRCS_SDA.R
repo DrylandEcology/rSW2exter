@@ -523,6 +523,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #'   A valid \var{T-SQL} query with a \var{WHERE} clause so that the code can
 #'   inject chunks of \code{mukeys_unique} values,
 #'   i.e., \var{"mapunit.mukey IN (\%s)"}.
+#'   If \code{NA}, then the default query is loaded, see examples.
 #' @param majcompflag A character string. \var{"subset"} keeps
 #'   the WHERE clause \var{component.majcompflag = 'Yes'} that is contained in
 #'   \code{sql_template}; \var{"ignore"} removes it from the query. Note that
@@ -542,16 +543,19 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #'
 #' @seealso \code{\link[soilDB]{SDA_query}}
 #'
+#' @examples
+#' res1 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
+#'
+#' sql <- readLines(
+#'   system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
+#' )
+#'
+#' res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+#'
 #' @export
 fetch_soils_from_NRCS_SDA <- function(
   mukeys_unique,
-  sql_template = readLines(
-    system.file(
-      "NRCS", "nrcs_sql_template.sql",
-      package = "rSW2exter",
-      mustWork = TRUE
-    )
-  ),
+  sql_template = NA,
   majcompflag = c("subset", "ignore"),
   chunk_size = 1000L,
   progress_bar = FALSE
@@ -570,6 +574,17 @@ fetch_soils_from_NRCS_SDA <- function(
   )
 
   N_chunks <- length(ids_chunks)
+
+  if (isTRUE(is.na(sql_template))) {
+    sql_template <- readLines(
+      system.file(
+        "NRCS", "nrcs_sql_template.sql",
+        package = "rSW2exter",
+        mustWork = TRUE
+      )
+    )
+  }
+
 
   #--- Extract soil horizon data for mukeys (chunked)
   res <- list()

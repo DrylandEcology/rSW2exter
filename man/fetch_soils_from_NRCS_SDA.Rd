@@ -6,8 +6,7 @@
 \usage{
 fetch_soils_from_NRCS_SDA(
   mukeys_unique,
-  sql_template = readLines(system.file("NRCS", "nrcs_sql_template.sql", package =
-    "rSW2exter", mustWork = TRUE)),
+  sql_template = NA,
   majcompflag = c("subset", "ignore"),
   chunk_size = 1000L,
   progress_bar = FALSE
@@ -19,7 +18,8 @@ fetch_soils_from_NRCS_SDA(
 \item{sql_template}{A character vector.
 A valid \var{T-SQL} query with a \var{WHERE} clause so that the code can
 inject chunks of \code{mukeys_unique} values,
-i.e., \var{"mapunit.mukey IN (\%s)"}.}
+i.e., \var{"mapunit.mukey IN (\%s)"}.
+If \code{NA}, then the default query is loaded, see examples.}
 
 \item{majcompflag}{A character string. \var{"subset"} keeps
 the WHERE clause \var{component.majcompflag = 'Yes'} that is contained in
@@ -46,6 +46,16 @@ Download soil data from \var{NRCS} \var{SDA} web service
 use \code{\link{extract_soils_NRCS_SDA}} for a user-friendly interface.
 }
 
+\examples{
+res1 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
+
+sql <- readLines(
+  system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
+)
+
+res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+
+}
 \seealso{
 \code{\link[soilDB]{SDA_query}}
 }

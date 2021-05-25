@@ -325,7 +325,7 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) x[1] > 0 & x[2] > 0 & x[3] %in% c(0, NA)
+    FUN = function(x) !anyNA(x[1:2]) & x[1] > 0 & x[2] > 0 & x[3] %in% c(0, NA)
   )
   locs_table_depths[ids, "depth_L1"] <- locs_table_depths[ids, "SoilDepth_cm"]
 
@@ -339,7 +339,7 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) x[1] == 0 & x[2] > 0 & x[3] %in% c(0, NA)
+    FUN = function(x) !anyNA(x[1:2]) & x[1] == 0 & x[2] > 0 & x[3] %in% c(0, NA)
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- 0
 
@@ -353,7 +353,7 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) x[1] == 0 & x[2] > 0
+    FUN = function(x) !is.na(x[1]) & x[1] == 0 & x[2] > 0
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- 0
 
@@ -367,12 +367,14 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) x[1] > 0 & x[2] == 0 & !is.na(x[3]) & x[3] > 0
+    FUN = function(x) {
+      !is.na(x[1]) & x[1] > 0 & x[2] == 0 & !is.na(x[3]) & x[3] > 0
+    }
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- locs_table_depths[ids, "depth_L1"]
 
 
-  # Clean layer depths > soil dept
+  # Clean layer depths > soil depth
   ids <- locs_table_depths[, "SoilDepth_cm"] < locs_table_depths[, -1]
   locs_table_depths[, -1][ids] <- NA
 

@@ -34,7 +34,8 @@ of the \var{component} table, but not in the \var{STATSGO} version.}
 loops over the chunks?}
 }
 \value{
-A \var{data.frame} according to the specifications of \code{sql}.
+A \var{data.frame} according to the specifications of \code{sql} or
+  \code{NULL} if the query returns empty.
 }
 \description{
 Download soil data from \var{NRCS} \var{SDA} web service
@@ -54,6 +55,9 @@ sql <- readLines(
 )
 
 res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+
+# This will return NULL because -1 is not an existing mukey value
+res3 <- fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
 
 }
 \seealso{

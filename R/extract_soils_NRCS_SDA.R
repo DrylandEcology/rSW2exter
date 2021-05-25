@@ -536,7 +536,8 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #' @param progress_bar A logical value. Display a progress bar as the code
 #'   loops over the chunks?
 #'
-#' @return A \var{data.frame} according to the specifications of \code{sql}.
+#' @return A \var{data.frame} according to the specifications of \code{sql} or
+#'   \code{NULL} if the query returns empty.
 #'
 #' @section Notes: A live internet connection is required to access \var{SDA}.
 #'
@@ -553,6 +554,9 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #' )
 #'
 #' res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+#'
+#' # This will return NULL because -1 is not an existing mukey value
+#' res3 <- fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
 #'
 #' @export
 fetch_soils_from_NRCS_SDA <- function(
@@ -619,14 +623,16 @@ fetch_soils_from_NRCS_SDA <- function(
     has_progress_bar <- FALSE
   }
 
+  # Identify lines where mukey values are injected
+  tmp <- regexpr("mukey IN (%s)", sql_base, fixed = TRUE)
+  iline <- which(tmp > 0)[1]
+
 
   for (k in seq_along(ids_chunks)) {
     # Prepare SQL query for SDA
     sql <- sql_base
 
     # Insert requested mukey values
-    tmp <- regexpr("mukey IN (%s)", sql, fixed = TRUE)
-    iline <- which(tmp > 0)[1]
     sql[iline] <- sprintf(
       fmt = sql[iline],
       paste(shQuote(mukeys_unique[ids_chunks[[k]]]), collapse = ",")
@@ -634,8 +640,9 @@ fetch_soils_from_NRCS_SDA <- function(
 
     # Send query to SDA
     # Suppress messages about returning a data.frame
+    # (but returned value could be NULL)
     res[[k]] <- suppressMessages(soilDB::SDA_query(paste(sql, collapse = " ")))
-    stopifnot(!inherits(res[[k]], "try-error"))
+    if (length(res) > 0) stopifnot(!inherits(res[[k]], "try-error"))
 
     if (has_progress_bar) {
       utils::setTxtProgressBar(pb, k)

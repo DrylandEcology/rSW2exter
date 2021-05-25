@@ -839,6 +839,7 @@ extract_soils_NRCS_SDA <- function(
       mukeys
     },
     cokey = NA,
+    compname = NA,
     compkind = NA,
     comppct_r = NA
   )
@@ -862,8 +863,9 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Assign (dominant) cokey to point locations
   ids <- match(locs_keys[, "mukey"], res[, "MUKEY"], nomatch = 0)
-  locs_keys[ids > 0, c("cokey", "compkind", "comppct_r")] <-
-    res[ids, c("COKEY", "compkind", "comppct_r")]
+  tmp_vars <- c("compname", "compkind", "comppct_r")
+  tmp_vars <- intersect(tmp_vars, colnames(res))
+  locs_keys[ids > 0, c("cokey", tmp_vars)] <- res[ids, c("COKEY", tmp_vars)]
 
 
   #--- Identify which variables are fixed per COKEY

@@ -661,6 +661,12 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   \var{"SSURGO_then_STATSGO"} which attempts to replace
 #'   \code{locations} without \var{"SSURGO"} soil information,
 #'   e.g., due to unmapped areas, with \var{"STATSGO"} data.
+#' @param only_majcomp A logical value. If \code{TRUE} and extraction is
+#'   from \var{"SSURGO"}, then the query extracts only major components.
+#'   If \code{FALSE}, then the query extracts components that are major and
+#'   those that are not (see \var{majcompflag} of
+#'   \code{\link{fetch_soils_from_NRCS_SDA}}).
+#'   Ignored if extraction is from \var{"STATSGO"}.
 #' @param remove_organic_horizons A character string. Method
 #'   indicating how to deal with organic horizons as determined by
 #'   function \code{\link{is_NRCS_horizon_organic}}. See details.
@@ -783,6 +789,8 @@ extract_soils_NRCS_SDA <- function(
   crs = 4326,
   mukeys,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
+  sql_template = NA,
+  only_majcomp = TRUE,
   remove_organic_horizons = c("none", "all", "at_surface"),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
@@ -839,7 +847,12 @@ extract_soils_NRCS_SDA <- function(
   # Download soil data from NRCS SDA web service
   res <- fetch_soils_from_NRCS_SDA(
     mukeys_unique = unique(locs_keys[["mukey"]]),
-    majcompflag = switch(db, SSURGO = "subset", STATSGO = "ignore"),
+    sql_template = sql_template,
+    majcompflag = if (only_majcomp) {
+      switch(db, SSURGO = "subset", STATSGO = "ignore")
+    } else {
+      "ignore"
+    },
     chunk_size = chunk_size,
     progress_bar = progress_bar
   )

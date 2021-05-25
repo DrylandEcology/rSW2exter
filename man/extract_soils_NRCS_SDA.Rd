@@ -10,6 +10,8 @@ extract_soils_NRCS_SDA(
   crs = 4326,
   mukeys,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
+  sql_template = NA,
+  only_majcomp = TRUE,
   remove_organic_horizons = c("none", "all", "at_surface"),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
@@ -49,6 +51,19 @@ should query \var{"SSURGO"}, \var{"STATSGO"}, or
 \var{"SSURGO_then_STATSGO"} which attempts to replace
 \code{locations} without \var{"SSURGO"} soil information,
 e.g., due to unmapped areas, with \var{"STATSGO"} data.}
+
+\item{sql_template}{A character vector.
+A valid \var{T-SQL} query with a \var{WHERE} clause so that the code can
+inject chunks of \code{mukeys_unique} values,
+i.e., \var{"mapunit.mukey IN (\%s)"}.
+If \code{NA}, then the default query is loaded, see examples.}
+
+\item{only_majcomp}{A logical value. If \code{TRUE} and extraction is
+from \var{"SSURGO"}, then the query extracts only major components.
+If \code{FALSE}, then the query extracts components that are major and
+those that are not (see \var{majcompflag} of
+\code{\link{fetch_soils_from_NRCS_SDA}}).
+Ignored if extraction is from \var{"STATSGO"}.}
 
 \item{remove_organic_horizons}{A character string. Method
 indicating how to deal with organic horizons as determined by

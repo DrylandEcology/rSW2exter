@@ -838,6 +838,8 @@ extract_soils_NRCS_SDA <- function(
   db <- if (method == "STATSGO") "STATSGO" else "SSURGO"
 
   locs_keys <- data.frame(
+    row_id = NA,
+    unit_id = NA,
     source = db,
     mukey = if (missing(mukeys)) {
       fetch_mukeys_spatially_NRCS_SDA(
@@ -858,8 +860,26 @@ extract_soils_NRCS_SDA <- function(
 
   stopifnot(!anyNA(locs_keys[["mukey"]]))
 
+  locs_keys[, "row_id"] <- seq_len(nrow(locs_keys)) # extraction ID
 
-  # Download soil data from NRCS SDA web service
+  #--- Identify unique soil units, here, unique mukeys, (and define unit_id)
+  locs_keys[, "unit_id"] <- match(
+    locs_keys[, "mukey"],
+    unique(locs_keys[, "mukey"])
+  )
+
+  if (FALSE) {
+    # e.g., unique soil units defined by mukey-compname combinations
+    tmp_tag <- apply(
+      locs_keys[, c("mukey", "compname")],
+      MARGIN = 1,
+      FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
+    )
+    locs_keys[, "unit_id"] <- match(tmp_tag, unique(tmp_tag))
+  }
+
+
+  #--- Download soil data from NRCS SDA web service (for unique "mukeys")
   res <- fetch_soils_from_NRCS_SDA(
     mukeys_unique = unique(locs_keys[["mukey"]]),
     sql_template = sql_template,
@@ -872,15 +892,34 @@ extract_soils_NRCS_SDA <- function(
     progress_bar = progress_bar
   )
 
+  # Assign unique soil unit IDs to `res`
+  ids <- match(res[, "MUKEY"], locs_keys[, "mukey"])
+  res[, "unit_id"] <- locs_keys[ids, "unit_id"]
 
-  #--- Assign (dominant) cokey to point locations
-  ids <- match(locs_keys[, "mukey"], res[, "MUKEY"], nomatch = 0)
+  if (FALSE) {
+    # e.g., unique soil units defined by mukey-compname combinations
+    tmp_tag2 <- apply(
+      res[, c("MUKEY", "compname")],
+      MARGIN = 1,
+      FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
+    )
+    ids <- match(tmp_tag2, tmp_tag)
+    res[, "unit_id"] <- locs_keys[ids, "unit_id"]
+  }
+
+
+  # Copy extracted soil information to table `locs_keys` (based on unit_id)
+  ids <- match(locs_keys[, "unit_id"], res[, "unit_id"], nomatch = 0)
   tmp_vars <- c("compname", "compkind", "comppct_r")
   tmp_vars <- intersect(tmp_vars, colnames(res))
   locs_keys[ids > 0, c("cokey", tmp_vars)] <- res[ids, c("COKEY", tmp_vars)]
 
+  if (verbose && any(ids == 0)) {
+    message("Some requests returned without soils: n = ", sum(ids == 0))
+  }
 
-  #--- Identify which variables are fixed per COKEY
+
+  #--- Identify which variables are fixed per soil unit
   var_stxt3 <- c("sandtotal_r", "claytotal_r", "silttotal_r")
   var_stxt <- intersect(var_stxt3, colnames(res))
   var_output <- c(
@@ -892,7 +931,7 @@ extract_soils_NRCS_SDA <- function(
 
   tmp <- by(
     data = res,
-    INDICES = res[["COKEY"]],
+    INDICES = res[["unit_id"]],
     FUN = function(x) {
       sapply(
         X = x,
@@ -910,10 +949,12 @@ extract_soils_NRCS_SDA <- function(
 
   tmp <- matrix(unlist(tmp), ncol = ncol(res), byrow = TRUE)
 
-  fx_per_cokey <- colnames(res)[!apply(tmp, 2, any, na.rm = TRUE)]
+  fx_per_unit <- colnames(res)[!apply(tmp, 2, any, na.rm = TRUE)]
 
-  fx_per_cokey <- union(fx_per_cokey, c("MUKEY", "COKEY"))
-  fx_per_cokey <- setdiff(fx_per_cokey, c("hzdept_r", "hzdepb_r", var_output))
+  fx_per_unit <- union(fx_per_unit, c("MUKEY", "COKEY"))
+  fx_per_unit <- setdiff(fx_per_unit, c("hzdept_r", "hzdepb_r", var_output))
+
+  stopifnot("unit_id" %in% fx_per_unit)
 
 
   #--- Deduce soil texture iff one of three values is missing
@@ -984,23 +1025,23 @@ extract_soils_NRCS_SDA <- function(
       is_remove <- is_organic & res[, "Horizon_No"] == 1
 
       # Check whether more than one surface horizon is organic
-      cokeys_w_osurf <- unique(res[is_remove, "COKEY"])
-      ids_check <- which(res[["COKEY"]] %in% cokeys_w_osurf)
+      unit_w_osurf <- unique(res[is_remove, "unit_id"])
+      ids_check <- which(res[["unit_id"]] %in% unit_w_osurf)
 
       if (length(ids_check) > 0) {
         tmp <- tapply(
           X = is_organic[ids_check],
-          INDEX = res[ids_check, "COKEY"],
+          INDEX = res[ids_check, "unit_id"],
           FUN = function(x) {
             # First element corresponds to TRUE
-            # because we only look at COKEYS with an organic surface horizon
+            # because we only look at soil units with an organic surface horizon
             n <- rle(x)[["lengths"]][1]
             c(rep(TRUE, n), rep(FALSE, length(x) - n))
           },
           simplify = FALSE
         )
 
-        is_remove[ids_check] <- unlist(tmp[match(cokeys_w_osurf, names(tmp))])
+        is_remove[ids_check] <- unlist(tmp[match(unit_w_osurf, names(tmp))])
       }
 
 
@@ -1009,7 +1050,7 @@ extract_soils_NRCS_SDA <- function(
 
         message(
           "Removed organic horizons at surface: n = ", n_remove,
-          " for n = ", length(cokeys_w_osurf), " unique COKEYs",
+          " for n = ", length(unit_w_osurf), " unique soils",
           if (n_oburied > 0) {
             paste0("; n = ", n_oburied, " buried organic horizons remain.")
           } else "."
@@ -1021,9 +1062,9 @@ extract_soils_NRCS_SDA <- function(
     #--- Remove identified organic horizons
 
     if (any(is_remove)) {
-      # Identify cokeys with horizons to be removed
-      cokeys_affected <- unique(res[is_remove, "COKEY"])
-      ids_affected <- which(res[["COKEY"]] %in% cokeys_affected)
+      # Identify soil units with horizons to be removed
+      unit_affected <- unique(res[is_remove, "unit_id"])
+      ids_affected <- which(res[["unit_id"]] %in% unit_affected)
 
       res_affected <- cbind(
         res[ids_affected, ],
@@ -1033,7 +1074,7 @@ extract_soils_NRCS_SDA <- function(
       # Recalculate horizon ranks and all depth values
       tmp <- by(
         data = res_affected,
-        INDICES = res_affected[["COKEY"]],
+        INDICES = res_affected[["unit_id"]],
         FUN = function(x) {
           ids_keep <- !x[["remove"]]
 
@@ -1059,11 +1100,11 @@ extract_soils_NRCS_SDA <- function(
             xnew[, ids] <- xnew[, ids] - removed_total
 
           } else {
-            # We need at least one entry per COKEY
+            # We need at least one entry per soil unit
             # Copy values of first row of those columns that are fixed per
-            # COKEY and set others to NA
+            # soil unit and set others to NA
             xnew <- x[1, , drop = FALSE]
-            xnew[, setdiff(colnames(xnew), fx_per_cokey)] <- NA
+            xnew[, setdiff(colnames(xnew), fx_per_unit)] <- NA
           }
 
           xnew
@@ -1084,13 +1125,13 @@ extract_soils_NRCS_SDA <- function(
   res[, "organic"] <- as.integer(res[, "organic"])
 
 
-  #--- Calculate soil depth of profile (per COKEY)
+  #--- Calculate soil depth of profile (per unique soil unit)
   # and convert depth table to wide-format for output
   locs_table_depths <- calculate_soil_depth_NRCS(
     x = res,
-    target_site_ids = locs_keys[, "cokey"],
+    target_site_ids = locs_keys[, "unit_id"],
     restrict_by_ec_or_ph = restrict_by_ec_or_ph,
-    var_site_id = "COKEY",
+    var_site_id = "unit_id",
     var_horizon = "Horizon_No",
     var_horizon_lower_depth = "hzdepb_r",
     var_restrictions =
@@ -1098,25 +1139,27 @@ extract_soils_NRCS_SDA <- function(
     var_soiltexture = c("sandtotal_r", "claytotal_r", "silttotal_r")
   )
 
-
-
   # Transfer final soil depth and (potentially adjusted depth_L1)
-  ids <- match(res[["COKEY"]], rownames(locs_table_depths))
+  ids <- match(res[["unit_id"]], rownames(locs_table_depths))
   res[, "SoilDepth_cm"] <- locs_table_depths[ids, "SoilDepth_cm"]
   res[, "N_horizons"] <- locs_table_depths[ids, "N_horizons"]
 
-  is_shallowest <- res[, "Horizon_No"] == 1
+  tmp <- res[, "Horizon_No"] == 1 | res[, "N_horizons"] == 0
+  is_shallowest <- tmp & !is.na(tmp)
   res[is_shallowest, "hzdepb_r"] <-
     locs_table_depths[ids[is_shallowest], "depth_L1"]
 
+  # Fix rownames of depth table
+  rownames(locs_table_depths) <- locs_keys[, "row_id"]
 
-  #--- Last step: impute remaining missing values per COKEY/location
+
+  #--- Last step: impute remaining missing values for each soil unit
   # by shallow-depth value carried deeper (in analogy to LOCF)
   # but do not impute missing values in the shallowest horizon
   if (impute) {
     res <- rSW2data::impute_soils(
       x = res,
-      var_site_id = "COKEY",
+      var_site_id = "unit_id",
       var_horizon = "Horizon_No",
       var_values = var_output,
       verbose = verbose
@@ -1162,20 +1205,21 @@ extract_soils_NRCS_SDA <- function(
   tmp_texture <- reshape2::acast(
     data = reshape2::melt(
       data = cbind(
-        res[, c("Horizon_No", "COKEY", var_output)]
+        res[, c("Horizon_No", "unit_id", var_output)]
       ),
-      id.vars = c("Horizon_No", "COKEY")
+      id.vars = c("Horizon_No", "unit_id")
     ),
-    formula = COKEY ~ Horizon_No + variable
+    formula = unit_id ~ Horizon_No + variable
   )
 
-  ids <- match(locs_keys[, "cokey"], rownames(tmp_texture), nomatch = NA)
+  ids <- match(locs_keys[, "unit_id"], rownames(tmp_texture), nomatch = NA)
   locs_table_texture <- tmp_texture[ids, , drop = FALSE]
 
   colnames(locs_table_texture) <- sapply(
     X = strsplit(colnames(locs_table_texture), split = "_"),
     FUN = function(x) paste0(x[2], "_L", x[1])
   )
+  rownames(locs_table_texture) <- locs_keys[, "row_id"]
 
 
 

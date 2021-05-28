@@ -195,6 +195,10 @@ calculate_soil_depth_NRCS <- function(
     target_site_ids <- x[, var_site_id]
   }
 
+  # Check that sites and horizons are unique combinations
+  stopifnot(anyDuplicated(x[, c(var_site_id, var_horizon)]) == 0)
+
+
   # Determine number of soil horizons with complete/partial soil texture values
   tmp <- aggregate(
     x = apply(
@@ -260,6 +264,7 @@ calculate_soil_depth_NRCS <- function(
   ids <- match(target_site_ids, rownames(tmp_depths), nomatch = NA)
   locs_table_depths <- tmp_depths[ids, , drop = FALSE]
   colnames(locs_table_depths) <- paste0("depth_L", colnames(locs_table_depths))
+  rownames(locs_table_depths) <- target_site_ids
 
 
   # Determine soil depth as depth of shallowest restriction

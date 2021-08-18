@@ -32,7 +32,7 @@ create_reference_for_POLARIS <- function() {
 #'  C. L. S. Morgan, A. B. McBratney, E. F. Wood, and Y. T. Yimam. 2019.
 #'  POLARIS soil properties: 30-meter probabilistic maps of soil properties
 #'  over the contiguous United States. Water Resources Research 55:2916-2938.
-#'  \url{https://doi.org/10.1029/2018WR022797}.
+#'  \doi{10.1029/2018WR022797}.
 #'
 #' @examples
 #' fname_wget_polaris <- prepare_script_for_POLARIS()
@@ -130,7 +130,7 @@ filepath_vrt_POLARIS <- function(path, var, stat, depth) {
 #'  C. L. S. Morgan, A. B. McBratney, E. F. Wood, and Y. T. Yimam. 2019.
 #'  POLARIS soil properties: 30-meter probabilistic maps of soil properties
 #'  over the contiguous United States. Water Resources Research 55:2916-2938.
-#'  \url{https://doi.org/10.1029/2018WR022797}.
+#'  \doi{10.1029/2018WR022797}.
 #'
 #' @examples
 #' script_to_download_polaris <- prepare_script_for_POLARIS()
@@ -189,7 +189,7 @@ check_POLARIS <- function(
 
           res["tif", k1, k2, k3] <- all(file.exists(ftmps[[1]])[-1])
         }
-       }
+      }
     }
   }
 
@@ -219,7 +219,7 @@ check_POLARIS <- function(
 #'  C. L. S. Morgan, A. B. McBratney, E. F. Wood, and Y. T. Yimam. 2019.
 #'  POLARIS soil properties: 30-meter probabilistic maps of soil properties
 #'  over the contiguous United States. Water Resources Research 55:2916-2938.
-#'  \url{https://doi.org/10.1029/2018WR022797}.
+#'  \doi{10.1029/2018WR022797}.
 #'
 #' @export
 fetch_soils_from_POLARIS <- function(x, crs,
@@ -319,7 +319,7 @@ fetch_soils_from_POLARIS <- function(x, crs,
 #'  C. L. S. Morgan, A. B. McBratney, E. F. Wood, and Y. T. Yimam. 2019.
 #'  POLARIS soil properties: 30-meter probabilistic maps of soil properties
 #'  over the contiguous United States. Water Resources Research 55:2916-2938.
-#'  \url{https://doi.org/10.1029/2018WR022797}.
+#'  \doi{10.1029/2018WR022797}.
 #'
 #' @seealso \code{\link[raster]{extract}}
 #'

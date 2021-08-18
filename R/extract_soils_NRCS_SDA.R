@@ -454,7 +454,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
   res <- list()
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(locations), #TODO: change to `nrow` once locations is "sf"
+    nx = length(locations), # TODO: change to `nrow` once locations is "sf"
     chunk_size = chunk_size
   )
 
@@ -1053,7 +1053,9 @@ extract_soils_NRCS_SDA <- function(
           " for n = ", length(unit_w_osurf), " unique soils",
           if (n_oburied > 0) {
             paste0("; n = ", n_oburied, " buried organic horizons remain.")
-          } else "."
+          } else {
+            "."
+          }
         )
       }
     }

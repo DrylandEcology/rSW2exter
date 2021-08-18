@@ -1,5 +1,3 @@
-context("Extract topographic data")
-
 
 test_that("Extract from NED USA", {
   skip_on_ci()

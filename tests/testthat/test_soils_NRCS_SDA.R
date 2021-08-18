@@ -1,5 +1,3 @@
-context("Extract topographic data")
-
 
 test_that("Calculate NRCS organic soil horizons", {
   x <- data.frame(
@@ -58,9 +56,10 @@ test_that("Calculate NRCS soil depth", {
     expect_equal(locs_table_depths[1, "SoilDepth_cm"], soildepth)
     expect_equal(locs_table_depths[1, 2 + id_sd], soildepth)
     if (k > 1) {
-      expect_equivalent(
+      expect_equal(
         locs_table_depths[1, 2 + 1:(id_sd - 1)],
-        x[1:(id_sd - 1), "layer_depth"]
+        x[1:(id_sd - 1), "layer_depth"],
+        ignore_attr = TRUE
       )
     }
   }

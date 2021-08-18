@@ -1,12 +1,11 @@
+# rSW2exter: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
 
-| Unix | Windows | Release | License | Coverage |
-| :---- | :---- | :---- | :---- | :---- |
-[ ![Travis build status][1]][2] | [![Appveyor build status][3]][4] | [ ![github release][5]][6] | [![license][7]][8] | [![codecov status][9]][10] |
+<!-- badges: start -->
+[ ![R build status][1]][2] [ ![github release][5]][6] [![license][7]][8] [![codecov status][9]][10]
+<!-- badges: end -->
 
-[1]: https://travis-ci.org/DrylandEcology/rSW2exter.svg?branch=master
-[2]: https://travis-ci.org/DrylandEcology/rSW2exter
-[3]: https://ci.appveyor.com/api/projects/status/8flt0gx8q1uupdqb/branch/master?svg=true
-[4]: https://ci.appveyor.com/project/DrylandEcologyGit/rSW2exter
+[1]: https://github.com/DrylandEcology/rSW2exter/actions/workflows/check-standard.yml/badge.svg?branch=main
+[2]: https://github.com/DrylandEcology/rSW2exter/actions
 [5]: https://img.shields.io/github/release/DrylandEcology/rSW2exter.svg?label=current+release
 [6]: https://github.com/DrylandEcology/rSW2exter/releases
 [7]: https://img.shields.io/github/license/DrylandEcology/rSW2exter.svg
@@ -35,7 +34,6 @@
 
 <br>
 
-# rSW2exter
 
 Collection of functions to access external data sources and
 prepare as inputs for [rSOILWAT2][], [rSFSW2][], and [rSFSTEP2][]
@@ -136,9 +134,9 @@ project you agree to abide by its terms.
       `devtools::check(cran = TRUE, env_vars = c(NOT_CRAN = "true"))` or
       `R CMD build . && NOT_CRAN = "true" R CMD check *.tar.gz`
     * Package checks include unit tests, code style, and spelling
-    * Checks will be run on the continuous integration frameworks
-      'travis' and 'appveyor' when commits are pushed
-    * Development/feature branches can only be merged into master if they pass
+    * These checks will be run on the continuous integration frameworks
+      via a workflow in `Github Action` for pull requests
+    * Development/feature branches can only be merged into main if they pass
       all checks
 
 <br>

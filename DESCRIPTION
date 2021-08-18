@@ -1,6 +1,6 @@
 Package: rSW2exter
-Title: Access external data as input for SOILWAT2 and STEPWAT2 simulations
-Version: 0.0.0.9000
+Title: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
+Version: 0.1.0
 Authors@R: c(
   person(
     "Daniel", "Schlaepfer",
@@ -14,9 +14,9 @@ Depends:
     methods
 Imports:
     curl,
-    rSW2utils,
-    rSW2st,
-    rSW2data,
+    rSW2utils (>= 0.1.0),
+    rSW2st (>= 0.1.0),
+    rSW2data (>= 0.1.0),
     raster,
     reshape2,
     sf,

@@ -48,16 +48,20 @@ use \code{\link{extract_soils_NRCS_SDA}} for a user-friendly interface.
 }
 
 \examples{
-res1 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
+\dontrun{
+if (curl::has_internet()) {
+  fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
 
-sql <- readLines(
-  system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
-)
+  sql <- readLines(
+    system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
+  )
 
-res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+  fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
 
-# This will return NULL because -1 is not an existing mukey value
-res3 <- fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
+  # This will return NULL because -1 is not an existing mukey value
+  fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
+}
+}
 
 }
 \seealso{

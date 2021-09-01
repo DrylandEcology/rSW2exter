@@ -454,7 +454,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
   res <- list()
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(locations), #TODO: change to `nrow` once locations is "sf"
+    nx = length(locations), # TODO: change to `nrow` once locations is "sf"
     chunk_size = chunk_size
   )
 
@@ -552,16 +552,20 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #' @seealso \code{\link[soilDB]{SDA_query}}
 #'
 #' @examples
-#' res1 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
+#' \dontrun{
+#' if (curl::has_internet()) {
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
 #'
-#' sql <- readLines(
-#'   system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
-#' )
+#'   sql <- readLines(
+#'     system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
+#'   )
 #'
-#' res2 <- fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
 #'
-#' # This will return NULL because -1 is not an existing mukey value
-#' res3 <- fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
+#'   # This will return NULL because -1 is not an existing mukey value
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
+#' }
+#' }
 #'
 #' @export
 fetch_soils_from_NRCS_SDA <- function(
@@ -646,8 +650,20 @@ fetch_soils_from_NRCS_SDA <- function(
     # Send query to SDA
     # Suppress messages about returning a data.frame
     # (but returned value could be NULL)
-    res[[k]] <- suppressMessages(soilDB::SDA_query(paste(sql, collapse = " ")))
-    if (length(res) > 0) stopifnot(!inherits(res[[k]], "try-error"))
+    tmp_sql <- paste(sql, collapse = " ")
+    res[[k]] <- suppressMessages(soilDB::SDA_query(tmp_sql))
+
+    if (length(res) > 0) {
+      if (inherits(res[[k]], "try-error")) {
+        message(
+          "Error produced during call to `soilDB::SDA_query`; ",
+          "result will be set to NULL; query leading to error was: ",
+          tmp_sql
+        )
+        warning(res[[k]])
+        res[[k]] <- NULL
+      }
+    }
 
     if (has_progress_bar) {
       utils::setTxtProgressBar(pb, k)
@@ -1053,7 +1069,9 @@ extract_soils_NRCS_SDA <- function(
           " for n = ", length(unit_w_osurf), " unique soils",
           if (n_oburied > 0) {
             paste0("; n = ", n_oburied, " buried organic horizons remain.")
-          } else "."
+          } else {
+            "."
+          }
         )
       }
     }

@@ -1,17 +1,16 @@
+# rSW2exter: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
 
-| Unix | Windows | Release | License | Coverage |
-| :---- | :---- | :---- | :---- | :---- |
-[ ![Travis build status][1]][2] | [![Appveyor build status][3]][4] | [ ![github release][5]][6] | [![license][7]][8] | [![codecov status][9]][10] |
+<!-- badges: start -->
+[ ![R build status][1]][2] [ ![github release][5]][6] [![license][7]][8] [![codecov status][9]][10]
+<!-- badges: end -->
 
-[1]: https://travis-ci.org/DrylandEcology/rSW2exter.svg?branch=master
-[2]: https://travis-ci.org/DrylandEcology/rSW2exter
-[3]: https://ci.appveyor.com/api/projects/status/8flt0gx8q1uupdqb/branch/master?svg=true
-[4]: https://ci.appveyor.com/project/DrylandEcologyGit/rSW2exter
+[1]: https://github.com/DrylandEcology/rSW2exter/actions/workflows/check-standard.yml/badge.svg?branch=main
+[2]: https://github.com/DrylandEcology/rSW2exter/actions
 [5]: https://img.shields.io/github/release/DrylandEcology/rSW2exter.svg?label=current+release
 [6]: https://github.com/DrylandEcology/rSW2exter/releases
 [7]: https://img.shields.io/github/license/DrylandEcology/rSW2exter.svg
 [8]: https://www.gnu.org/licenses/gpl.html
-[9]: https://codecov.io/gh/DrylandEcology/rSW2exter/branch/master/graph/badge.svg
+[9]: https://codecov.io/gh/DrylandEcology/rSW2exter/branch/main/graph/badge.svg
 [10]: https://codecov.io/gh/DrylandEcology/rSW2exter
 [11]: https://img.shields.io/github/downloads/DrylandEcology/rSW2exter/total.svg
 [SOILWAT2]: https://github.com/DrylandEcology/SOILWAT2
@@ -27,15 +26,14 @@
 [pull request]: https://github.com/DrylandEcology/rSW2exter/pulls
 [guidelines]: https://github.com/DrylandEcology/workflow_guidelines
 [semantic versioning]: https://semver.org/
-[testthat]: https://github.com/hadley/testthat
-[roxygen2 formatting]: https://cran.r-project.org/web/packages/roxygen2/vignettes/formatting.html
-[r-pkgs man]: http://r-pkgs.had.co.nz/man.html
-[r-pkgs tests]: http://r-pkgs.had.co.nz/tests.html
+[testthat]: https://github.com/r-lib/testthat
+[roxygen2]: https://cran.r-project.org/package=roxygen2
+[r-pkgs man]: https://r-pkgs.org/man.html
+[r-pkgs tests]: https://r-pkgs.org/tests.html
 
 
 <br>
 
-# rSW2exter
 
 Collection of functions to access external data sources and
 prepare as inputs for [rSOILWAT2][], [rSFSW2][], and [rSFSTEP2][]
@@ -113,7 +111,7 @@ project you agree to abide by its terms.
 #### Code documentation
   * This is based on the section
     ['Object documentation' of the book 'R packages' by Wickham][r-pkgs man]
-  * Use [roxygen2 formatting][] to write inline code documentation of functions
+  * Use [roxygen2][] to write inline code documentation of functions
   * Use regular R-style comments to additionally document code
   * Update help pages and the `NAMESPACE` file with the command
     `devtools::document()`
@@ -136,9 +134,9 @@ project you agree to abide by its terms.
       `devtools::check(cran = TRUE, env_vars = c(NOT_CRAN = "true"))` or
       `R CMD build . && NOT_CRAN = "true" R CMD check *.tar.gz`
     * Package checks include unit tests, code style, and spelling
-    * Checks will be run on the continuous integration frameworks
-      'travis' and 'appveyor' when commits are pushed
-    * Development/feature branches can only be merged into master if they pass
+    * These checks will be run on the continuous integration frameworks
+      via a workflow in `Github Action` for pull requests
+    * Development/feature branches can only be merged into main if they pass
       all checks
 
 <br>

@@ -32,7 +32,7 @@ create_reference_for_Miller1998_CONUSSoil <- function() {
     "Miller, D. A., and R. A. White. 1998. A conterminous United States ",
     "multilayer soil characteristics dataset for regional climate and ",
     "hydrology modeling. Earth Interactions 2:1-26. ",
-    "http://dx.doi.org/10.1175%2F1087-3562%281998%29002%3C0001%3AACUSMS%3E2.3.CO%3B2 ", #nolint
+    "https://doi.org/10.1175%2F1087-3562%281998%29002%3C0001%3AACUSMS%3E2.3.CO%3B2 ", # nolint
     "Data accessed [",
     format(as.POSIXlt(Sys.Date()), "%Y-%b-%e"),
     "]"

@@ -61,5 +61,5 @@ Chaney, N. W., B. Minasny, J. D. Herman, T. W. Nauman, C. Brungard,
  C. L. S. Morgan, A. B. McBratney, E. F. Wood, and Y. T. Yimam. 2019.
  POLARIS soil properties: 30-meter probabilistic maps of soil properties
  over the contiguous United States. Water Resources Research 55:2916-2938.
- \url{https://doi.org/10.1029/2018WR022797}.
+ \doi{10.1029/2018WR022797}.
 }

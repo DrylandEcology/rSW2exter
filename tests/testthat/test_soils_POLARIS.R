@@ -1,5 +1,3 @@
-context("Extract soils data")
-
 
 test_that("Extract soils from POLARIS", {
   skip_on_ci()
@@ -55,5 +53,8 @@ test_that("Extract soils from POLARIS", {
       na.rm = TRUE,
       digits = 3
     )
+
+  } else {
+    skip("No POLARIS data available to test.")
   }
 })

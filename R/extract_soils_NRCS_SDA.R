@@ -443,18 +443,25 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     curl::has_internet()
   )
 
+  vsoilDB <- getNamespaceVersion("soilDB")
+
   #------ Make sure inputs are correctly formatted
   db <- match.arg(db)
 
-  # We convert to `sp` because of `soilDB::SDA_spatialQuery` (v2.5.7)
-  locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
+  if (vsoilDB >= as.numeric_version("2.6.10")) {
+    locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
+    nxlocs <- nrow(locations)
+  } else {
+    locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
+    nxlocs <- length(locations)
+  }
 
 
   #--- Extract mukeys for each point location
   res <- list()
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(locations), # TODO: change to `nrow` once locations is "sf"
+    nx = nxlocs,
     chunk_size = chunk_size
   )
 
@@ -481,7 +488,11 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       soilDB::SDA_spatialQuery(
         geom = locations[ids_chunks[[k]], ],
         db = db,
-        what = "geom"
+        what = if (vsoilDB >= as.numeric_version("2.6.3")) {
+          "mupolygon"
+        } else {
+          "geom"
+        }
       ),
       silent = FALSE
     )
@@ -490,20 +501,30 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       warning("Spatial SDA query produced error: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
-    } else if (!inherits(res_mukeys, "SpatialPolygons")) {
+    } else if (!inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
       warning("Spatial SDA query returned non-spatial object: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
     } else {
-      # Return values of `SDA_spatialQuery` are not ordered by input `geom`,
-      # as of soilDB v2.5.7
-      res[[k]] <- sp::over(
-        x = sp::spTransform(
-          locations[ids_chunks[[k]], ],
-          CRSobj = sp::proj4string(res_mukeys)
-        ),
-        y = res_mukeys
-      )[, "mukey"]
+      # Extract mukey for each location because
+      # return values of `SDA_spatialQuery` are not ordered by input `geom`
+      # (unless `byFeature = TRUE` since v2.6.10)
+      res[[k]] <- if (inherits(locations, "sf")) {
+        ids <- unlist(unclass(sf::st_intersects(locations, res_mukeys)))
+        as.vector(res_mukeys[ids, "mukey", drop = TRUE])
+
+      } else if (inherits(locations, "Spatial")) {
+        sp::over(
+          x = sp::spTransform(
+            locations[ids_chunks[[k]], ],
+            CRSobj = sp::proj4string(res_mukeys)
+          ),
+          y = res_mukeys
+        )[, "mukey"]
+
+      } else {
+        stop(class(res_mukeys), "/", class(locations), " is not implemented.")
+      }
     }
 
     if (has_progress_bar) {

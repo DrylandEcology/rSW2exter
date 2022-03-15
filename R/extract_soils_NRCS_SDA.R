@@ -774,6 +774,12 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   See \var{GetDominantComponent.py}
 #'   from \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox}.
 #'
+#'   Whereas \var{mukey} is expected to identify the same soil map unit
+#'   across different releases of the \var{NRCS} database, a component
+#'   cannot be tracked by its \var{cokey} across releases. A component of
+#'   a soil map unit is best identified by a unique combination of
+#'   \var{compname}, \var{comppct_r}, and \var{localphase}.
+#'
 #' @section Details:
 #'   The argument \code{remove_organic_horizons} is one of
 #'   \describe{
@@ -892,7 +898,8 @@ extract_soils_NRCS_SDA <- function(
     cokey = NA,
     compname = NA,
     compkind = NA,
-    comppct_r = NA
+    comppct_r = NA,
+    localphase = NA
   )
 
   stopifnot(!anyNA(locs_keys[["mukey"]]))
@@ -947,7 +954,7 @@ extract_soils_NRCS_SDA <- function(
 
   # Copy extracted soil information to table `locs_keys` (based on unit_id)
   ids <- match(locs_keys[, "unit_id"], res[, "unit_id"], nomatch = 0)
-  tmp_vars <- c("compname", "compkind", "comppct_r")
+  tmp_vars <- c("compname", "compkind", "comppct_r", "localphase")
   tmp_vars <- intersect(tmp_vars, colnames(res))
   locs_keys[ids > 0, c("cokey", tmp_vars)] <- res[ids, c("COKEY", tmp_vars)]
 
@@ -1007,11 +1014,15 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Interpret missing values for rock/gravel fragments as 0 %
   if ("fragvol_r" %in% colnames(res)) {
+    replace_missing_fragvol_with_zero <- match.arg(
+      replace_missing_fragvol_with_zero
+    )
+
     res <- rSW2data::set_missing_soils_to_value(
       x = res,
       variable = "fragvol_r",
       value = 0,
-      where = match.arg(replace_missing_fragvol_with_zero),
+      where = replace_missing_fragvol_with_zero,
       horizon = "Horizon_No",
       verbose = verbose
     )

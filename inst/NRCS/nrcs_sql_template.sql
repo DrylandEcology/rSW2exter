@@ -11,6 +11,7 @@
 -- Remove condition `component.majcompflag = 'Yes'` for STATSGO queries because not every STASTGO mukey has at least one component with majcompflag = 'Yes'
 -- `legend.musym` exists for SSURGO but not for STATSGO
 
+-- Identify component: compname, comppct_r, localphase
 
 SELECT
   legend.areasymbol,
@@ -19,6 +20,7 @@ SELECT
   component.comppct_r,
   component.taxorder, component.taxsubgrp,
   component.compname, component.compkind,
+  component.localphase,
   SUBSTRING(
     (
       SELECT '; ' + chtxg_tx.texture
@@ -85,4 +87,4 @@ AND
     ORDER BY co_dc.comppct_r DESC
   )
 
-ORDER BY mapunit.mukey, component.comppct_r DESC, component.compname, chorizon.hzdept_r ASC
+ORDER BY mapunit.mukey, component.comppct_r DESC, component.compname, component.localphase, chorizon.hzdept_r ASC

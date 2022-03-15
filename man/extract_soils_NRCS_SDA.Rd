@@ -139,6 +139,12 @@ Extract soil information from the Soil Data Access \var{SDA} service by
   See \var{GetDominantComponent.py}
   from \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox}.
 
+  Whereas \var{mukey} is expected to identify the same soil map unit
+  across different releases of the \var{NRCS} database, a component
+  cannot be tracked by its \var{cokey} across releases. A component of
+  a soil map unit is best identified by a unique combination of
+  \var{compname}, \var{comppct_r}, and \var{localphase}.
+
 
   The argument \code{remove_organic_horizons} is one of
   \describe{

@@ -12,6 +12,8 @@
 -- `legend.musym` exists for SSURGO but not for STATSGO
 
 -- Identify component: compname, comppct_r, localphase
+-- Exclude non-soil components : 'Miscellaneous area', 'NOTCOM'
+
 
 SELECT
   legend.areasymbol,
@@ -84,6 +86,7 @@ AND
     SELECT TOP 1 co_dc.cokey
     FROM component AS co_dc
     INNER JOIN mapunit AS mu_dc ON co_dc.mukey = mu_dc.mukey and mu_dc.mukey = mapunit.mukey
+    WHERE co_dc.compkind NOT IN ('Miscellaneous area', 'NOTCOM')
     ORDER BY co_dc.comppct_r DESC
   )
 

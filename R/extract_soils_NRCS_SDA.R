@@ -557,6 +557,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #'   \code{sql_template}; \var{"ignore"} removes it from the query. Note that
 #'   the field \var{"majcompflag} exists only in the \var{SSURGO} version
 #'   of the \var{component} table, but not in the \var{STATSGO} version.
+#' @param only_soilcomp A logical value. If \code{TRUE}, then query restricts
+#'   to soil components. If \code{FALSE}, then query includes
+#'   all components including "Miscellaneous areas" and \var{"NOTCOM"}
+#'   (not complete) components.
 #' @param chunk_size An integer value. The size of chunks into which
 #'   \code{mukeys_unique} is broken up and looped over for processing.
 #' @param progress_bar A logical value. Display a progress bar as the code
@@ -577,6 +581,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #' if (curl::has_internet()) {
 #'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
 #'
+#'   # As of 2022-March-15, mukey 2479921 contained one "NOTCOM" component
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921)
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921, only_soilcomp = FALSE)
+#'
 #'   sql <- readLines(
 #'     system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
 #'   )
@@ -593,6 +601,7 @@ fetch_soils_from_NRCS_SDA <- function(
   mukeys_unique,
   sql_template = NA,
   majcompflag = c("subset", "ignore"),
+  only_soilcomp = TRUE,
   chunk_size = 1000L,
   progress_bar = FALSE
 ) {
@@ -634,6 +643,14 @@ fetch_soils_from_NRCS_SDA <- function(
     tmp <- regexpr(txt_majcompflag, sql_base, fixed = TRUE)
     iline <- which(tmp > 0)[1]
     sql_base[iline] <- sub(txt_majcompflag, "", sql_base[iline])
+  }
+
+  # handle non-soil components
+  if (!only_soilcomp) {
+    txt_nosoilflag <- "compkind NOT IN"
+    tmp <- regexpr(txt_nosoilflag, sql_base, fixed = TRUE)
+    iline <- which(tmp > 0)[1]
+    sql_base[iline] <- ""
   }
 
   progress_bar <- progress_bar && N_chunks > 2
@@ -770,7 +787,8 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   \code{\link{fetch_soils_from_NRCS_SDA}}. The default \var{SQL} template
 #'   \var{"nrcs_sql_template.sql"} extracts the "dominant component".
 #'   The dominant component is defined as the the first \var{cokey} with the
-#'   highest representative component percent \var{comppct_r}.
+#'   highest representative component percent \var{comppct_r} that is a
+#'   soil component.
 #'   See \var{GetDominantComponent.py}
 #'   from \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox}.
 #'
@@ -848,6 +866,7 @@ extract_soils_NRCS_SDA <- function(
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
+  only_soilcomp = TRUE,
   remove_organic_horizons = c("none", "all", "at_surface"),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
@@ -932,6 +951,7 @@ extract_soils_NRCS_SDA <- function(
     } else {
       "ignore"
     },
+    only_soilcomp = only_soilcomp,
     chunk_size = chunk_size,
     progress_bar = progress_bar
   )

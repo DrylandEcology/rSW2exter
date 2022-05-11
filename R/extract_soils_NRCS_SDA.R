@@ -932,9 +932,9 @@ extract_soils_NRCS_SDA <- function(
   )
 
   if (FALSE) {
-    # e.g., unique soil units defined by mukey-compname combinations
+    # e.g., unique soil units defined by mukey-component combinations
     tmp_tag <- apply(
-      locs_keys[, c("mukey", "compname")],
+      locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
     )
@@ -963,7 +963,7 @@ extract_soils_NRCS_SDA <- function(
   if (FALSE) {
     # e.g., unique soil units defined by mukey-compname combinations
     tmp_tag2 <- apply(
-      res[, c("MUKEY", "compname")],
+      res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
     )

@@ -12,6 +12,7 @@ extract_soils_NRCS_SDA(
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
+  only_soilcomp = TRUE,
   remove_organic_horizons = c("none", "all", "at_surface"),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
@@ -64,6 +65,11 @@ If \code{FALSE}, then the query extracts components that are major and
 those that are not (see \var{majcompflag} of
 \code{\link{fetch_soils_from_NRCS_SDA}}).
 Ignored if extraction is from \var{"STATSGO"}.}
+
+\item{only_soilcomp}{A logical value. If \code{TRUE}, then query restricts
+to soil components. If \code{FALSE}, then query includes
+all components including "Miscellaneous areas" and \var{"NOTCOM"}
+(not complete) components.}
 
 \item{remove_organic_horizons}{A character string. Method
 indicating how to deal with organic horizons as determined by
@@ -135,9 +141,16 @@ Extract soil information from the Soil Data Access \var{SDA} service by
   \code{\link{fetch_soils_from_NRCS_SDA}}. The default \var{SQL} template
   \var{"nrcs_sql_template.sql"} extracts the "dominant component".
   The dominant component is defined as the the first \var{cokey} with the
-  highest representative component percent \var{comppct_r}.
+  highest representative component percent \var{comppct_r} that is a
+  soil component.
   See \var{GetDominantComponent.py}
   from \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox}.
+
+  Whereas \var{mukey} is expected to identify the same soil map unit
+  across different releases of the \var{NRCS} database, a component
+  cannot be tracked by its \var{cokey} across releases. A component of
+  a soil map unit is best identified by a unique combination of
+  \var{compname}, \var{comppct_r}, and \var{localphase}.
 
 
   The argument \code{remove_organic_horizons} is one of

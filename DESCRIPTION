@@ -1,6 +1,6 @@
 Package: rSW2exter
 Title: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
   person(
     "Daniel", "Schlaepfer",
@@ -23,7 +23,7 @@ Imports:
     sp
 Suggests:
     FedData,
-    soilDB,
+    soilDB (>= 2.5.7),
     utils,
     testthat (>= 3.0.0),
     spelling,
@@ -40,4 +40,4 @@ Encoding: UTF-8
 LazyData: true
 Config/testthat/edition: 3
 Language: en-US
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

@@ -443,18 +443,25 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     curl::has_internet()
   )
 
+  vsoilDB <- getNamespaceVersion("soilDB")
+
   #------ Make sure inputs are correctly formatted
   db <- match.arg(db)
 
-  # We convert to `sp` because of `soilDB::SDA_spatialQuery` (v2.5.7)
-  locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
+  if (vsoilDB >= as.numeric_version("2.6.10")) {
+    locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
+    nxlocs <- nrow(locations)
+  } else {
+    locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
+    nxlocs <- length(locations)
+  }
 
 
   #--- Extract mukeys for each point location
   res <- list()
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(locations), # TODO: change to `nrow` once locations is "sf"
+    nx = nxlocs,
     chunk_size = chunk_size
   )
 
@@ -481,7 +488,11 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       soilDB::SDA_spatialQuery(
         geom = locations[ids_chunks[[k]], ],
         db = db,
-        what = "geom"
+        what = if (vsoilDB >= as.numeric_version("2.6.3")) {
+          "mupolygon"
+        } else {
+          "geom"
+        }
       ),
       silent = FALSE
     )
@@ -490,20 +501,30 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       warning("Spatial SDA query produced error: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
-    } else if (!inherits(res_mukeys, "SpatialPolygons")) {
+    } else if (!inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
       warning("Spatial SDA query returned non-spatial object: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
     } else {
-      # Return values of `SDA_spatialQuery` are not ordered by input `geom`,
-      # as of soilDB v2.5.7
-      res[[k]] <- sp::over(
-        x = sp::spTransform(
-          locations[ids_chunks[[k]], ],
-          CRSobj = sp::proj4string(res_mukeys)
-        ),
-        y = res_mukeys
-      )[, "mukey"]
+      # Extract mukey for each location because
+      # return values of `SDA_spatialQuery` are not ordered by input `geom`
+      # (unless `byFeature = TRUE` since v2.6.10)
+      res[[k]] <- if (inherits(locations, "sf")) {
+        ids <- unlist(unclass(sf::st_intersects(locations, res_mukeys)))
+        as.vector(res_mukeys[ids, "mukey", drop = TRUE])
+
+      } else if (inherits(locations, "Spatial")) {
+        sp::over(
+          x = sp::spTransform(
+            locations[ids_chunks[[k]], ],
+            CRSobj = sp::proj4string(res_mukeys)
+          ),
+          y = res_mukeys
+        )[, "mukey"]
+
+      } else {
+        stop(class(res_mukeys), "/", class(locations), " is not implemented.")
+      }
     }
 
     if (has_progress_bar) {
@@ -536,6 +557,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #'   \code{sql_template}; \var{"ignore"} removes it from the query. Note that
 #'   the field \var{"majcompflag} exists only in the \var{SSURGO} version
 #'   of the \var{component} table, but not in the \var{STATSGO} version.
+#' @param only_soilcomp A logical value. If \code{TRUE}, then query restricts
+#'   to soil components. If \code{FALSE}, then query includes
+#'   all components including "Miscellaneous areas" and \var{"NOTCOM"}
+#'   (not complete) components.
 #' @param chunk_size An integer value. The size of chunks into which
 #'   \code{mukeys_unique} is broken up and looped over for processing.
 #' @param progress_bar A logical value. Display a progress bar as the code
@@ -556,6 +581,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 #' if (curl::has_internet()) {
 #'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
 #'
+#'   # As of 2022-March-15, mukey 2479921 contained one "NOTCOM" component
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921)
+#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921, only_soilcomp = FALSE)
+#'
 #'   sql <- readLines(
 #'     system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
 #'   )
@@ -572,6 +601,7 @@ fetch_soils_from_NRCS_SDA <- function(
   mukeys_unique,
   sql_template = NA,
   majcompflag = c("subset", "ignore"),
+  only_soilcomp = TRUE,
   chunk_size = 1000L,
   progress_bar = FALSE
 ) {
@@ -613,6 +643,14 @@ fetch_soils_from_NRCS_SDA <- function(
     tmp <- regexpr(txt_majcompflag, sql_base, fixed = TRUE)
     iline <- which(tmp > 0)[1]
     sql_base[iline] <- sub(txt_majcompflag, "", sql_base[iline])
+  }
+
+  # handle non-soil components
+  if (!only_soilcomp) {
+    txt_nosoilflag <- "compkind NOT IN"
+    tmp <- regexpr(txt_nosoilflag, sql_base, fixed = TRUE)
+    iline <- which(tmp > 0)[1]
+    sql_base[iline] <- ""
   }
 
   progress_bar <- progress_bar && N_chunks > 2
@@ -749,9 +787,16 @@ fetch_soils_from_NRCS_SDA <- function(
 #'   \code{\link{fetch_soils_from_NRCS_SDA}}. The default \var{SQL} template
 #'   \var{"nrcs_sql_template.sql"} extracts the "dominant component".
 #'   The dominant component is defined as the the first \var{cokey} with the
-#'   highest representative component percent \var{comppct_r}.
+#'   highest representative component percent \var{comppct_r} that is a
+#'   soil component.
 #'   See \var{GetDominantComponent.py}
 #'   from \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox}.
+#'
+#'   Whereas \var{mukey} is expected to identify the same soil map unit
+#'   across different releases of the \var{NRCS} database, a component
+#'   cannot be tracked by its \var{cokey} across releases. A component of
+#'   a soil map unit is best identified by a unique combination of
+#'   \var{compname}, \var{comppct_r}, and \var{localphase}.
 #'
 #' @section Details:
 #'   The argument \code{remove_organic_horizons} is one of
@@ -821,6 +866,7 @@ extract_soils_NRCS_SDA <- function(
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
+  only_soilcomp = TRUE,
   remove_organic_horizons = c("none", "all", "at_surface"),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
   estimate_missing_bulkdensity = FALSE,
@@ -871,7 +917,8 @@ extract_soils_NRCS_SDA <- function(
     cokey = NA,
     compname = NA,
     compkind = NA,
-    comppct_r = NA
+    comppct_r = NA,
+    localphase = NA
   )
 
   stopifnot(!anyNA(locs_keys[["mukey"]]))
@@ -885,9 +932,9 @@ extract_soils_NRCS_SDA <- function(
   )
 
   if (FALSE) {
-    # e.g., unique soil units defined by mukey-compname combinations
+    # e.g., unique soil units defined by mukey-component combinations
     tmp_tag <- apply(
-      locs_keys[, c("mukey", "compname")],
+      locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
     )
@@ -904,6 +951,7 @@ extract_soils_NRCS_SDA <- function(
     } else {
       "ignore"
     },
+    only_soilcomp = only_soilcomp,
     chunk_size = chunk_size,
     progress_bar = progress_bar
   )
@@ -915,7 +963,7 @@ extract_soils_NRCS_SDA <- function(
   if (FALSE) {
     # e.g., unique soil units defined by mukey-compname combinations
     tmp_tag2 <- apply(
-      res[, c("MUKEY", "compname")],
+      res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
     )
@@ -926,7 +974,7 @@ extract_soils_NRCS_SDA <- function(
 
   # Copy extracted soil information to table `locs_keys` (based on unit_id)
   ids <- match(locs_keys[, "unit_id"], res[, "unit_id"], nomatch = 0)
-  tmp_vars <- c("compname", "compkind", "comppct_r")
+  tmp_vars <- c("compname", "compkind", "comppct_r", "localphase")
   tmp_vars <- intersect(tmp_vars, colnames(res))
   locs_keys[ids > 0, c("cokey", tmp_vars)] <- res[ids, c("COKEY", tmp_vars)]
 
@@ -986,11 +1034,15 @@ extract_soils_NRCS_SDA <- function(
 
   #--- Interpret missing values for rock/gravel fragments as 0 %
   if ("fragvol_r" %in% colnames(res)) {
+    replace_missing_fragvol_with_zero <- match.arg(
+      replace_missing_fragvol_with_zero
+    )
+
     res <- rSW2data::set_missing_soils_to_value(
       x = res,
       variable = "fragvol_r",
       value = 0,
-      where = match.arg(replace_missing_fragvol_with_zero),
+      where = replace_missing_fragvol_with_zero,
       horizon = "Horizon_No",
       verbose = verbose
     )

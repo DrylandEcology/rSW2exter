@@ -14,10 +14,7 @@ test_that("Calculate NRCS organic soil horizons", {
     c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, NA)
   )
 
-  expect_equal(
-    is_NRCS_horizon_organic(x[1, , drop = FALSE]),
-    FALSE
-  )
+  expect_false(is_NRCS_horizon_organic(x[1, , drop = FALSE]))
 })
 
 

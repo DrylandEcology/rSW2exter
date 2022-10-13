@@ -431,9 +431,10 @@ extract_soils_POLARIS <- function(
 
     # Determine for which variables we have criteria to determine problems
     tmp <- intersect(c(vars, "texture"), names(fix_criteria))
-    ok <- sapply(
+    ok <- vapply(
       X = fix_criteria[tmp],
-      FUN = function(x) all(c("op", "value") %in% names(x))
+      FUN = function(x) all(c("op", "value") %in% names(x)),
+      FUN.VALUE = NA
     )
     check_vars <- tmp[ok]
 
@@ -582,9 +583,10 @@ extract_soils_POLARIS <- function(
 
 
   #--- Set (fixed) soil depth of profile in wide-format for output
-  layer_depths <- as.integer(sapply(
+  layer_depths <- as.integer(vapply(
     X = strsplit(depth_profile_POLARIS(), split = "_"),
-    FUN = function(x) x[2]
+    FUN = function(x) x[2],
+    FUN.VALUE = NA_character_
   ))
 
   locs_table_depths <- cbind(

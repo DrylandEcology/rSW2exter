@@ -456,9 +456,10 @@ extract_soils_NRCS_gNATSGO <- function(
   locs_table_texture <- tmp_texture[ids, ]
 
   tmp <- strsplit(colnames(locs_table_texture), split = "_")
-  colnames(locs_table_texture) <- sapply(
+  colnames(locs_table_texture) <- vapply(
     X = tmp,
-    FUN = function(x) paste0(x[2], "_L", x[1])
+    FUN = function(x) paste0(x[2], "_L", x[1]),
+    FUN.VALUE = NA_character_
   )
 
 

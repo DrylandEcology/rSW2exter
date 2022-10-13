@@ -999,7 +999,7 @@ extract_soils_NRCS_SDA <- function(
     data = res,
     INDICES = res[["unit_id"]],
     FUN = function(x) {
-      sapply(
+      vapply(
         X = x,
         FUN = function(v) {
           if (is.numeric(v)) {
@@ -1007,7 +1007,8 @@ extract_soils_NRCS_SDA <- function(
           } else {
             nlevels(factor(v)) > 1
           }
-        }
+        },
+        FUN.VALUE = NA
       )
     },
     simplify = FALSE
@@ -1287,9 +1288,10 @@ extract_soils_NRCS_SDA <- function(
   ids <- match(locs_keys[, "unit_id"], rownames(tmp_texture), nomatch = NA)
   locs_table_texture <- tmp_texture[ids, , drop = FALSE]
 
-  colnames(locs_table_texture) <- sapply(
+  colnames(locs_table_texture) <- vapply(
     X = strsplit(colnames(locs_table_texture), split = "_"),
-    FUN = function(x) paste0(x[2], "_L", x[1])
+    FUN = function(x) paste0(x[2], "_L", x[1]),
+    FUN.VALUE = NA_character_
   )
   rownames(locs_table_texture) <- locs_keys[, "row_id"]
 

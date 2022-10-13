@@ -215,7 +215,7 @@ check_Miller1998_CONUSSoil <- function(
   )
 ) {
 
-  sapply(
+  vapply(
     vars,
     function(var) {
       file.exists(filepath_Miller1998_CONUSSoil(
@@ -223,7 +223,8 @@ check_Miller1998_CONUSSoil <- function(
         var = var,
         lower_limit = lower_limits_by_vars[var]
       ))
-    }
+    },
+    FUN.VALUE = NA
   )
 }
 
@@ -595,9 +596,10 @@ extract_soils_Miller1998_CONUSSoil <- function(
     formula = id ~ Horizon_No + variable
   )
 
-  colnames(locs_table_texture) <- sapply(
+  colnames(locs_table_texture) <- vapply(
     X = strsplit(colnames(locs_table_texture), split = "_"),
-    FUN = function(x) paste0(x[2], "_L", x[1])
+    FUN = function(x) paste0(x[2], "_L", x[1]),
+    FUN.VALUE = NA_character_
   )
 
 

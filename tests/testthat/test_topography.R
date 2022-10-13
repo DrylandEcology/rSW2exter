@@ -25,12 +25,12 @@ test_that("Extract from NED USA", {
   )
 
   ### Download NED
-  ned_1s_example <- FedData::get_ned(
+  ned_1s_example <- suppressMessages(FedData::get_ned(
     template = extent_polygon,
     label = label_ned,
     res = 1,
     extraction.dir = path_ned
-  )
+  ))
 
   ### Derive slope and aspect
   for (opt in c("slope", "aspect")) {

@@ -313,7 +313,9 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
       }
 
     } else {
-      stop("Miller1998/CONUSSoil data ", shQuote(basename(ftmp)), " not found.")
+      stop(
+        "Miller1998 (CONUSSoil) data ", shQuote(basename(ftmp)), " not found."
+      )
     }
   }
 

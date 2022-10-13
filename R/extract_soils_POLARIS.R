@@ -52,7 +52,7 @@ prepare_script_for_POLARIS <- function(
 ) {
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
 
-  bash_shebang <- "#!/bin/bash"
+  bash_shebang <- "#!/bin/bash" # nolint: nonportable_path_linter
 
   wget <- paste0(
     "wget -nc -c --recursive --no-parent --no-host-directories --cut-dirs=1 ",

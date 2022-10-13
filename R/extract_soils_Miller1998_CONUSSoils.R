@@ -106,7 +106,7 @@ prepare_script_for_Miller1998_CONUSSoil <- function(
 #'
 #' @export
 create_conditioned_Miller1998_CONUSSoil <- function(
-  path,
+  path = ".",
   vars = c("rockdepm", "rockvol", "bd", "sand", "clay", "silt"),
   lower_limits_by_vars = c(
     rockdepm = 0, rockvol = 0, bd = 30, sand = 0, clay = 0, silt = 0
@@ -380,7 +380,7 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
 extract_soils_Miller1998_CONUSSoil <- function(
   x,
   crs = 4326,
-  path,
+  path = ".",
   vars = c("bd", "rockvol", "sand", "clay", "silt"),
   lower_limits_by_vars = c(bd = 30, rockvol = 0, sand = 0, clay = 0, silt = 0),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),

@@ -9,7 +9,7 @@ fetch_soils_from_POLARIS(
   crs,
   vars,
   stat,
-  path,
+  path = ".",
   buffer_m = NULL,
   fun = NULL,
   na.rm = TRUE,

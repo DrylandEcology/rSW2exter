@@ -222,8 +222,16 @@ check_POLARIS <- function(
 #'  \doi{10.1029/2018WR022797}.
 #'
 #' @export
-fetch_soils_from_POLARIS <- function(x, crs,
-  vars, stat, path, buffer_m = NULL, fun = NULL, na.rm = TRUE, verbose = FALSE
+fetch_soils_from_POLARIS <- function(
+  x,
+  crs,
+  vars,
+  stat,
+  path = ".",
+  buffer_m = NULL,
+  fun = NULL,
+  na.rm = TRUE,
+  verbose = FALSE
 ) {
 
   depths <- depth_profile_POLARIS()
@@ -389,7 +397,7 @@ extract_soils_POLARIS <- function(
   crs = 4326,
   vars = c("bd", "sand", "clay", "silt"),
   stat = "mean",
-  path,
+  path = ".",
   method = c("asis", "fix_with_buffer"),
   fix_criteria = list(
     bd = list(op = "<", value = 0.6),

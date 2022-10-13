@@ -882,7 +882,7 @@ fetch_soils_from_NRCS_SDA <- function(
 extract_soils_NRCS_SDA <- function(
   x,
   crs = 4326,
-  mukeys,
+  mukeys = NULL,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
@@ -903,9 +903,9 @@ extract_soils_NRCS_SDA <- function(
   }
 
   stopifnot(
-    !(missing(x) && missing(mukeys)),
+    !(missing(x) && is.null(mukeys)),
     curl::has_internet(),
-    missing(x) || missing(mukeys) || nrow(x) == length(mukeys)
+    missing(x) || is.null(mukeys) || nrow(x) == length(mukeys)
   )
 
   method <- match.arg(method)
@@ -923,7 +923,7 @@ extract_soils_NRCS_SDA <- function(
     row_id = NA,
     unit_id = NA,
     source = db,
-    mukey = if (missing(mukeys)) {
+    mukey = if (is.null(mukeys)) {
       fetch_mukeys_spatially_NRCS_SDA(
         x = x,
         crs = crs,

@@ -107,7 +107,7 @@
 extract_topography_NEDUSA <- function(
   x,
   crs = 4326,
-  path,
+  path = ".",
   file_datasets = list(
     elev = "ned_1s.tif",
     slope = file.path("terrain", "slope_ned_1s.tif"),

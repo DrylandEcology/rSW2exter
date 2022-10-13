@@ -451,7 +451,7 @@ extract_soils_POLARIS <- function(
     if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
-        paste(shQuote(tmp[!ok]), collapse = ", "),
+        toString(shQuote(tmp[!ok])),
         " because of incomplete criteria."
       )
     }
@@ -466,7 +466,7 @@ extract_soils_POLARIS <- function(
     if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
-        paste(shQuote(tmp[!ok]), collapse = ", "),
+        toString(shQuote(tmp[!ok])),
         " because of missing summarizing function `fun`."
       )
     }
@@ -480,7 +480,7 @@ extract_soils_POLARIS <- function(
         warning(
           "Cannot apply `fix_with_buffer` for `texture` because of ",
           "missing texture variables: ",
-          paste(shQuote(var_stxt3[hasnot_texture]), collapse = ", ")
+          toString(shQuote(var_stxt3[hasnot_texture]))
         )
 
       } else {

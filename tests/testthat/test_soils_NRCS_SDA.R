@@ -142,6 +142,16 @@ test_that("Extract soils from NRCS SDA", {
   expect_equal(tmp[["mukeys"]], mukeys)
 
 
+  # Test chunking of `locations`
+  ids <- rep(seq_len(nrow(locations)), each = 50L)
+  tmp <- suppressWarnings(fetch_mukeys_spatially_NRCS_SDA(
+    x = locations[ids, , drop = FALSE],
+    chunk_size = 10L
+  ))
+  expect_equal(tmp[["mukeys"]], mukeys[ids])
+
+
+
   # Example 1: extract soils by mukey values
   soils1a <- extract_soils_NRCS_SDA(mukeys = mukeys[1])
   soils1 <- extract_soils_NRCS_SDA(mukeys = mukeys)

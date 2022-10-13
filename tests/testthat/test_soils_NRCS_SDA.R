@@ -5,7 +5,8 @@ test_that("Calculate NRCS organic soil horizons", {
     taxsubgrp = c("x", "histic", "x", "x", "x", "x", NA),
     desgnmaster = c("L", "L", "O", "x", "x", "x", NA),
     texture = c("x", "x", "x", "CE", "x", "x", NA),
-    lieutex = c("x", "x", "x", "x", "Muck", "x", NA)
+    lieutex = c("x", "x", "x", "x", "Muck", "x", NA),
+    stringsAsFactors = FALSE
   )
 
   expect_equal(

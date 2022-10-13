@@ -1,4 +1,7 @@
 # rSW2exter v0.1.2-9000
+* Linting updated to `lintr` >= 3 and
+  lint workflow switched from package tests to Github Action (#5).
+
 
 # rSW2exter v0.1.1
 * `fetch_mukeys_spatially_NRCS_SDA()` now handles versions of "soilDB"

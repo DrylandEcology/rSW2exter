@@ -26,7 +26,7 @@ create_reference_for_NRCS_SDA <- function() {
 #'   representing mineral soils. \code{NA}s in the input propagate.
 #'
 #' @references Code based on \var{CheckTexture()} version \var{2020-Aug-31} from
-# nolint start
+# nolint start: line_length_linter
 #'   \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox/blob/master/SDA_Valu2Table.py}
 # nolint end
 #'
@@ -128,7 +128,7 @@ is_NRCS_horizon_organic <- function(x) {
 #'   }
 #'
 #' @references Code based on \var{CalcRZDepth()} version 2020-08-31:
-# nolint start
+# nolint start: line_length_linter
 #'   \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox/blob/master/SDA_Valu2Table.py}
 # nolint end
 #'   Note: currently ignores "dense" layer restrictions

@@ -187,7 +187,7 @@ check_POLARIS <- function(
             m = gregexpr(paste0(path, ".+?\\.(tif|vrt)"), x)
           )
 
-          res["tif", k1, k2, k3] <- all(file.exists(ftmps[[1]])[-1])
+          res["tif", k1, k2, k3] <- all(file.exists(ftmps[[1L]])[-1])
         }
       }
     }
@@ -423,7 +423,7 @@ extract_soils_POLARIS <- function(
     verbose = verbose
   )
 
-  N_layers <- dim(res)[3]
+  N_layers <- dim(res)[[3L]]
 
 
   #--- Attempt to replace sites with problematic values by buffered extractions
@@ -585,7 +585,7 @@ extract_soils_POLARIS <- function(
   #--- Set (fixed) soil depth of profile in wide-format for output
   layer_depths <- as.integer(vapply(
     X = strsplit(depth_profile_POLARIS(), split = "_"),
-    FUN = function(x) x[2],
+    FUN = function(x) x[[2L]],
     FUN.VALUE = NA_character_
   ))
 

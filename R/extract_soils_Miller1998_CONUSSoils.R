@@ -254,8 +254,8 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
   # Align with data crs
   ftmp <- filepath_Miller1998_CONUSSoil(
     path = path,
-    var = vars[1],
-    lower_limit = lower_limits_by_vars[vars[1]]
+    var = vars[[1L]],
+    lower_limit = lower_limits_by_vars[vars[[1L]]]
   )
 
   tmp_crs <- sf::st_crs(raster::brick(ftmp))
@@ -411,7 +411,7 @@ extract_soils_Miller1998_CONUSSoil <- function(
     verbose = verbose
   )
 
-  N_layers <- dim(res)[3]
+  N_layers <- dim(res)[[3L]]
 
 
   # Calculate restriction depth by >99% rock volume
@@ -598,7 +598,7 @@ extract_soils_Miller1998_CONUSSoil <- function(
 
   colnames(locs_table_texture) <- vapply(
     X = strsplit(colnames(locs_table_texture), split = "_"),
-    FUN = function(x) paste0(x[2], "_L", x[1]),
+    FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
     FUN.VALUE = NA_character_
   )
 

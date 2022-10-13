@@ -448,7 +448,7 @@ extract_soils_POLARIS <- function(
     check_vars <- tmp[ok]
 
     # Is `fix_criteria` well formed?
-    if (any(!ok)) {
+    if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
         paste(shQuote(tmp[!ok]), collapse = ", "),
@@ -463,7 +463,7 @@ extract_soils_POLARIS <- function(
     ok <- if (one_fun) TRUE else check_vars %in% names(fun)
 
     # Is `fun` well formed?
-    if (any(!ok)) {
+    if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
         paste(shQuote(tmp[!ok]), collapse = ", "),

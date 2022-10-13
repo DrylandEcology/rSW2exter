@@ -50,14 +50,17 @@ test_that("Calculate NRCS soil depth", {
       var_soiltexture = var_stxt3
     )
 
-    expect_identical(locs_table_depths[1, "N_horizons"], id_sd)
+    expect_equal(
+      locs_table_depths[1, "N_horizons"],
+      id_sd,
+      ignore_attr = c("waldo_opts", "type")
+    )
     expect_identical(locs_table_depths[1, "SoilDepth_cm"], soildepth)
     expect_identical(locs_table_depths[1, 2 + id_sd], soildepth)
     if (k > 1) {
-      expect_equal(
-        locs_table_depths[1, 2 + 1:(id_sd - 1)],
-        x[1:(id_sd - 1), "layer_depth"],
-        ignore_attr = TRUE
+      expect_identical(
+        unname(locs_table_depths[1, 2 + 1:(id_sd - 1)]),
+        x[1:(id_sd - 1), "layer_depth"]
       )
     }
   }

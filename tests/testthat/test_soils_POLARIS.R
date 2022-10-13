@@ -11,7 +11,7 @@ test_that("Extract soils from POLARIS", {
 
   ## Check that we have POLARIS data
   has_POLARIS <- isTRUE(all(
-    check_POLARIS(path = path_polaris, vars = vars, stat = stat)
+    check_POLARIS(path = path_polaris, vars = vars, stats = stat)
   ))
 
   if (has_POLARIS) {

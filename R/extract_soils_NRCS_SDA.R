@@ -407,7 +407,7 @@ calculate_soil_depth_NRCS <- function(
     N_horizons = apply(
       X = locs_table_depths[, -1, drop = FALSE],
       MARGIN = 1,
-      function(x) sum(!is.na(x))
+      function(x) as.integer(sum(!is.na(x)))
     ),
     depth_L = locs_table_depths
   )

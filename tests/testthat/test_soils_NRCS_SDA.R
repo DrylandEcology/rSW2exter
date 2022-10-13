@@ -9,7 +9,7 @@ test_that("Calculate NRCS organic soil horizons", {
     stringsAsFactors = FALSE
   )
 
-  expect_equal(
+  expect_identical(
     is_NRCS_horizon_organic(x),
     c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, NA)
   )
@@ -50,9 +50,9 @@ test_that("Calculate NRCS soil depth", {
       var_soiltexture = var_stxt3
     )
 
-    expect_equal(locs_table_depths[1, "N_horizons"], id_sd)
-    expect_equal(locs_table_depths[1, "SoilDepth_cm"], soildepth)
-    expect_equal(locs_table_depths[1, 2 + id_sd], soildepth)
+    expect_identical(locs_table_depths[1, "N_horizons"], id_sd)
+    expect_identical(locs_table_depths[1, "SoilDepth_cm"], soildepth)
+    expect_identical(locs_table_depths[1, 2 + id_sd], soildepth)
     if (k > 1) {
       expect_equal(
         locs_table_depths[1, 2 + 1:(id_sd - 1)],
@@ -75,7 +75,7 @@ test_that("Extract soils from NRCS SDA", {
     nrow = 2
   )
 
-  mukeys <- c(471168, 1606800)
+  mukeys <- c(471168L, 1606800L)
 
   expected_soil_variables <- c("MUKEY", "COKEY", "Horizon_No")
   expected_depth_variables <- c("N_horizons", "SoilDepth_cm")
@@ -137,7 +137,7 @@ test_that("Extract soils from NRCS SDA", {
 
 
   tmp <- suppressWarnings(fetch_mukeys_spatially_NRCS_SDA(locations))
-  expect_equal(tmp[["mukeys"]], mukeys)
+  expect_identical(tmp[["mukeys"]], mukeys)
 
 
   # Test chunking of `locations`
@@ -146,7 +146,7 @@ test_that("Extract soils from NRCS SDA", {
     x = locations[ids, , drop = FALSE],
     chunk_size = 10L
   ))
-  expect_equal(tmp[["mukeys"]], mukeys[ids])
+  expect_identical(tmp[["mukeys"]], mukeys[ids])
 
 
 
@@ -155,7 +155,7 @@ test_that("Extract soils from NRCS SDA", {
   soils1 <- extract_soils_NRCS_SDA(mukeys = mukeys)
 
   for (kelem in expected_obj_results) {
-    expect_equal(soils1a[[kelem]], soils1[[kelem]][1L, , drop = FALSE])
+    expect_identical(soils1a[[kelem]], soils1[[kelem]][1L, , drop = FALSE])
   }
 
   # Example 2: extract soils by geographic location
@@ -163,11 +163,11 @@ test_that("Extract soils from NRCS SDA", {
   soils2 <- suppressWarnings(extract_soils_NRCS_SDA(x = locations))
 
   for (kelem in expected_obj_results) {
-    expect_equal(soils2a[[kelem]], soils2[[kelem]][1L, , drop = FALSE])
+    expect_identical(soils2a[[kelem]], soils2[[kelem]][1L, , drop = FALSE])
   }
 
 
-  expect_equal(soils1, soils2)
+  expect_identical(soils1, soils2)
   expect_named(soils1, expected_obj_variables)
   expect_true(
     rSW2data::check_depth_table(

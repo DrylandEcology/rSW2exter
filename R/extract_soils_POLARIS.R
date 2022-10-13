@@ -258,7 +258,8 @@ fetch_soils_from_POLARIS <- function(
         if (verbose) {
           message(
             Sys.time(),
-            " extracting ", vars[iv], " at ", sub("_", "-", depths[id]), " cm"
+            " extracting ", vars[iv], " at ",
+            sub("_", "-", depths[id], fixed = TRUE), " cm"
           )
         }
 
@@ -512,7 +513,13 @@ extract_soils_POLARIS <- function(
         }
       }
 
-      check_vars <- grep("texture", check_vars, value = TRUE, invert = TRUE)
+      check_vars <- grep(
+        "texture",
+        x = check_vars,
+        value = TRUE,
+        invert = TRUE,
+        fixed = TRUE
+      )
     }
 
     # Fix for all other variables
@@ -592,7 +599,7 @@ extract_soils_POLARIS <- function(
 
   #--- Set (fixed) soil depth of profile in wide-format for output
   layer_depths <- as.integer(vapply(
-    X = strsplit(depth_profile_POLARIS(), split = "_"),
+    X = strsplit(depth_profile_POLARIS(), split = "_", fixed = TRUE),
     FUN = function(x) x[[2L]],
     FUN.VALUE = NA_character_
   ))

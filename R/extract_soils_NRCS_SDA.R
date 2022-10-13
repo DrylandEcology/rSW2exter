@@ -655,7 +655,12 @@ fetch_soils_from_NRCS_SDA <- function(
   res <- list()
 
   # trim off comments at top of file
-  sql_base <- sql_template[-{1:(grep("SELECT", sql_template)[[1L]] - 1)}]
+  tmp_ids <- seq_len(grep("SELECT", sql_template, fixed = TRUE)[[1L]] - 1L)
+  sql_base <- if (length(tmp_ids) > 0) {
+    sql_template[-tmp_ids]
+  } else {
+    sql_template
+  }
 
   # remove majcompflag (may be necessary for STATSGO)
   if (majcompflag == "ignore") {
@@ -1183,11 +1188,11 @@ extract_soils_NRCS_SDA <- function(
             xnew[, "Horizon_No"] <- seq_len(n)
 
             # Re-calculate upper/lower horizon depth limits
-            ids <- grep("hzdep", colnames(xnew))
+            ids <- grep("hzdep", colnames(xnew), fixed = TRUE)
             xnew[, ids] <- xnew[, ids] - removed_widths
 
             # Re-calculate depth restrictions
-            ids <- grep("_depth", colnames(xnew))
+            ids <- grep("_depth", colnames(xnew), fixed = TRUE)
             xnew[, ids] <- xnew[, ids] - removed_total
 
           } else {
@@ -1208,7 +1213,7 @@ extract_soils_NRCS_SDA <- function(
       # Put data back together
       res <- rbind(
         res[-ids_affected, ],
-        tmp[, !grepl("remove", colnames(tmp))]
+        tmp[, !grepl("remove", colnames(tmp), fixed = TRUE)]
       )
     }
   }
@@ -1307,7 +1312,7 @@ extract_soils_NRCS_SDA <- function(
   locs_table_texture <- tmp_texture[ids, , drop = FALSE]
 
   colnames(locs_table_texture) <- vapply(
-    X = strsplit(colnames(locs_table_texture), split = "_"),
+    X = strsplit(colnames(locs_table_texture), split = "_", fixed = TRUE),
     FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
     FUN.VALUE = NA_character_
   )

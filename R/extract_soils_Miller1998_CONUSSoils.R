@@ -599,7 +599,7 @@ extract_soils_Miller1998_CONUSSoil <- function(
   )
 
   colnames(locs_table_texture) <- vapply(
-    X = strsplit(colnames(locs_table_texture), split = "_"),
+    X = strsplit(colnames(locs_table_texture), split = "_", fixed = TRUE),
     FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
     FUN.VALUE = NA_character_
   )

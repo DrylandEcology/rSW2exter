@@ -7,8 +7,8 @@
 check_Miller1998_CONUSSoil(
   path = ".",
   vars = c("rockdepm", "rockvol", "bd", "sand", "clay", "silt"),
-  lower_limits_by_vars = c(rockdepm = 0, rockvol = 0, bd = 30, sand = 0, clay = 0, silt
-    = 0)
+  lower_limits_by_vars = c(rockdepm = 0, rockvol = 0, bd = 30, sand = 0, clay = 0, silt =
+    0)
 )
 }
 \arguments{

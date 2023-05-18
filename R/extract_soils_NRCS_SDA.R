@@ -510,7 +510,9 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
       res[[k]] <- if (inherits(locations, "sf")) {
-        ids <- unlist(unclass(sf::st_intersects(locations, res_mukeys)))
+        ids <- unlist(unclass(
+          sf::st_intersects(locations[ids_chunks[[k]], ], res_mukeys)
+        ))
         as.vector(res_mukeys[ids, "mukey", drop = TRUE])
 
       } else if (inherits(locations, "Spatial")) {

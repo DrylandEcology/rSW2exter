@@ -8,7 +8,7 @@
 extract_soils_NRCS_SDA(
   x,
   crs = 4326,
-  mukeys,
+  mukeys = NULL,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,

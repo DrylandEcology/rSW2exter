@@ -55,9 +55,9 @@ test_that("Extract from NED USA", {
 
 
   #--- Expectations
-  expect_equal(nrow(vals_topo), nrow(locations))
-  expect_equal(ncol(vals_topo), 3L)
-  expect_equal(colnames(vals_topo), c("elev", "slope", "aspect"))
+  expect_identical(nrow(vals_topo), nrow(locations))
+  expect_identical(ncol(vals_topo), 3L)
+  expect_identical(colnames(vals_topo), c("elev", "slope", "aspect"))
   expect_type(vals_topo, "double")
   expect_true(
     all(

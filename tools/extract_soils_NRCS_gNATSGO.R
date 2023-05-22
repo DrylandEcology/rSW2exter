@@ -455,10 +455,11 @@ extract_soils_NRCS_gNATSGO <- function(
   ids <- match(locs_keys[, "cokey"], rownames(tmp_texture), nomatch = NA)
   locs_table_texture <- tmp_texture[ids, ]
 
-  tmp <- strsplit(colnames(locs_table_texture), split = "_")
-  colnames(locs_table_texture) <- sapply(
+  tmp <- strsplit(colnames(locs_table_texture), split = "_", fixed = TRUE)
+  colnames(locs_table_texture) <- vapply(
     X = tmp,
-    FUN = function(x) paste0(x[2], "_L", x[1])
+    FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
+    FUN.VALUE = NA_character_
   )
 
 

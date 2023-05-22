@@ -5,13 +5,13 @@ test_that("Extract soils from POLARIS", {
   skip_if_offline()
 
 
-  path_polaris <- "../test_data/polaris_example"
+  path_polaris <- file.path("..", "test_data", "polaris_example")
   vars <- c("bd", "sand", "clay", "silt")
   stat <- "mean"
 
   ## Check that we have POLARIS data
   has_POLARIS <- isTRUE(all(
-    check_POLARIS(path = path_polaris, vars = vars, stat = stat)
+    check_POLARIS(path = path_polaris, vars = vars, stats = stat)
   ))
 
   if (has_POLARIS) {

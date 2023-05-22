@@ -52,7 +52,7 @@ prepare_script_for_POLARIS <- function(
 ) {
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
 
-  bash_shebang <- "#!/bin/bash"
+  bash_shebang <- "#!/bin/bash" # nolint: nonportable_path_linter
 
   wget <- paste0(
     "wget -nc -c --recursive --no-parent --no-host-directories --cut-dirs=1 ",
@@ -187,7 +187,7 @@ check_POLARIS <- function(
             m = gregexpr(paste0(path, ".+?\\.(tif|vrt)"), x)
           )
 
-          res["tif", k1, k2, k3] <- all(file.exists(ftmps[[1]])[-1])
+          res["tif", k1, k2, k3] <- all(file.exists(ftmps[[1L]])[-1])
         }
       }
     }
@@ -222,8 +222,16 @@ check_POLARIS <- function(
 #'  \doi{10.1029/2018WR022797}.
 #'
 #' @export
-fetch_soils_from_POLARIS <- function(x, crs,
-  vars, stat, path, buffer_m = NULL, fun = NULL, na.rm = TRUE, verbose = FALSE
+fetch_soils_from_POLARIS <- function(
+  x,
+  crs,
+  vars,
+  stat,
+  path = ".",
+  buffer_m = NULL,
+  fun = NULL,
+  na.rm = TRUE,
+  verbose = FALSE
 ) {
 
   depths <- depth_profile_POLARIS()
@@ -250,7 +258,8 @@ fetch_soils_from_POLARIS <- function(x, crs,
         if (verbose) {
           message(
             Sys.time(),
-            " extracting ", vars[iv], " at ", sub("_", "-", depths[id]), " cm"
+            " extracting ", vars[iv], " at ",
+            sub("_", "-", depths[id], fixed = TRUE), " cm"
           )
         }
 
@@ -389,7 +398,7 @@ extract_soils_POLARIS <- function(
   crs = 4326,
   vars = c("bd", "sand", "clay", "silt"),
   stat = "mean",
-  path,
+  path = ".",
   method = c("asis", "fix_with_buffer"),
   fix_criteria = list(
     bd = list(op = "<", value = 0.6),
@@ -423,7 +432,7 @@ extract_soils_POLARIS <- function(
     verbose = verbose
   )
 
-  N_layers <- dim(res)[3]
+  N_layers <- dim(res)[[3L]]
 
 
   #--- Attempt to replace sites with problematic values by buffered extractions
@@ -431,17 +440,18 @@ extract_soils_POLARIS <- function(
 
     # Determine for which variables we have criteria to determine problems
     tmp <- intersect(c(vars, "texture"), names(fix_criteria))
-    ok <- sapply(
+    ok <- vapply(
       X = fix_criteria[tmp],
-      FUN = function(x) all(c("op", "value") %in% names(x))
+      FUN = function(x) all(c("op", "value") %in% names(x)),
+      FUN.VALUE = NA
     )
     check_vars <- tmp[ok]
 
     # Is `fix_criteria` well formed?
-    if (any(!ok)) {
+    if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
-        paste(shQuote(tmp[!ok]), collapse = ", "),
+        toString(shQuote(tmp[!ok])),
         " because of incomplete criteria."
       )
     }
@@ -453,10 +463,10 @@ extract_soils_POLARIS <- function(
     ok <- if (one_fun) TRUE else check_vars %in% names(fun)
 
     # Is `fun` well formed?
-    if (any(!ok)) {
+    if (!all(ok)) {
       warning(
         "Cannot apply `fix_with_buffer` for ",
-        paste(shQuote(tmp[!ok]), collapse = ", "),
+        toString(shQuote(tmp[!ok])),
         " because of missing summarizing function `fun`."
       )
     }
@@ -470,7 +480,7 @@ extract_soils_POLARIS <- function(
         warning(
           "Cannot apply `fix_with_buffer` for `texture` because of ",
           "missing texture variables: ",
-          paste(shQuote(var_stxt3[hasnot_texture]), collapse = ", ")
+          toString(shQuote(var_stxt3[hasnot_texture]))
         )
 
       } else {
@@ -503,7 +513,13 @@ extract_soils_POLARIS <- function(
         }
       }
 
-      check_vars <- grep("texture", check_vars, value = TRUE, invert = TRUE)
+      check_vars <- grep(
+        "texture",
+        x = check_vars,
+        value = TRUE,
+        invert = TRUE,
+        fixed = TRUE
+      )
     }
 
     # Fix for all other variables
@@ -582,9 +598,10 @@ extract_soils_POLARIS <- function(
 
 
   #--- Set (fixed) soil depth of profile in wide-format for output
-  layer_depths <- as.integer(sapply(
-    X = strsplit(depth_profile_POLARIS(), split = "_"),
-    FUN = function(x) x[2]
+  layer_depths <- as.integer(vapply(
+    X = strsplit(depth_profile_POLARIS(), split = "_", fixed = TRUE),
+    FUN = function(x) x[[2L]],
+    FUN.VALUE = NA_character_
   ))
 
   locs_table_depths <- cbind(

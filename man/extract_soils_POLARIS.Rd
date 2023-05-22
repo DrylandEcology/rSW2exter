@@ -10,7 +10,7 @@ extract_soils_POLARIS(
   crs = 4326,
   vars = c("bd", "sand", "clay", "silt"),
   stat = "mean",
-  path,
+  path = ".",
   method = c("asis", "fix_with_buffer"),
   fix_criteria = list(bd = list(op = "<", value = 0.6), texture = list(op = "<", value =
     0.5)),

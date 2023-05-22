@@ -8,7 +8,7 @@
 extract_topography_NEDUSA(
   x,
   crs = 4326,
-  path,
+  path = ".",
   file_datasets = list(elev = "ned_1s.tif", slope = file.path("terrain",
     "slope_ned_1s.tif"), aspect = file.path("terrain", "aspect_ned_1s.tif")),
   units_slope = c("degrees", "radians"),

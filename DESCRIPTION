@@ -17,6 +17,7 @@ Imports:
     rSW2utils (>= 0.1.0),
     rSW2st (>= 0.1.0),
     rSW2data (>= 0.1.0),
+    terra,
     raster,
     reshape2,
     sf,

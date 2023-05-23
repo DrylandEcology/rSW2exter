@@ -20,11 +20,11 @@ Imports:
     terra,
     raster,
     reshape2,
-    sf,
-    sp
+    sf
 Suggests:
     FedData (>= 3.0.2),
     soilDB (>= 2.5.7),
+    sp,
     utils,
     testthat (>= 3.0.0),
     spelling,

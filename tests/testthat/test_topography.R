@@ -19,9 +19,9 @@ test_that("Extract from NED USA", {
     to_class = "sf",
     crs = 4326
   )
-  extent_polygon <- FedData::polygon_from_extent(
-    x = 1.1 * raster::extent(locations),
-    proj4string = "+init=epsg:4326"
+  extent_polygon <- terra::vect(
+    1.1 * terra::ext(locations),
+    crs = terra::crs(locations)
   )
 
   ### Download NED
@@ -34,13 +34,11 @@ test_that("Extract from NED USA", {
 
   ### Derive slope and aspect
   for (opt in c("slope", "aspect")) {
-    tmp <- raster::terrain(
+    tmp <- terra::terrain(
       x = ned_1s_example,
-      opt = opt,
+      v = opt,
       unit = "degrees",
-      filename = filenames_ned_examples[[opt]],
-      datatype = "FLT4S",
-      options = c("COMPRESS=DEFLATE", "ZLEVEL=9", "INTERLEAVE=BAND")
+      filename = filenames_ned_examples[[opt]]
     )
   }
 
@@ -58,17 +56,14 @@ test_that("Extract from NED USA", {
   expect_identical(nrow(vals_topo), nrow(locations))
   expect_identical(ncol(vals_topo), 3L)
   expect_identical(colnames(vals_topo), c("elev", "slope", "aspect"))
-  expect_type(vals_topo, "double")
+  expect_type(as.matrix(vals_topo), "double")
   expect_true(
     all(
-      is.na(vals_topo[, "slope"]) |
       (vals_topo[, "slope"] >= 0 & vals_topo[, "slope"] <= 90)
     )
   )
   expect_true(
     all(
-      is.na(vals_topo[, "aspect"]) |
-      vals_topo[, "aspect"] == 999 |
       (vals_topo[, "aspect"] >= -180 & vals_topo[, "aspect"] <= 180)
     )
   )

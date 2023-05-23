@@ -108,9 +108,9 @@ if (requireNamespace("FedData") && curl::has_internet()) {
     to_class = "sf",
     crs = 4326
   )
-  extent_polygon <- FedData::polygon_from_extent(
-    x = 1.1 * raster::extent(locations),
-    proj4string = "+init=epsg:4326"
+  extent_polygon <- terra::vect(
+    1.1 * terra::ext(locations),
+    crs = terra::crs(locations)
   )
 
   ### Download NED
@@ -123,13 +123,11 @@ if (requireNamespace("FedData") && curl::has_internet()) {
 
   ### Derive slope and aspect
   for (opt in c("slope", "aspect")) {
-    tmp <- raster::terrain(
+    tmp <- terra::terrain(
       x = ned_1s_example,
-      opt = opt,
+      v = opt,
       unit = "degrees",
-      filename = filenames_ned_examples[[opt]],
-      datatype = "FLT4S",
-      options = c("COMPRESS=DEFLATE", "ZLEVEL=9", "INTERLEAVE=BAND")
+      filename = filenames_ned_examples[[opt]]
     )
   }
 

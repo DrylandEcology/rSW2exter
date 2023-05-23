@@ -17,13 +17,14 @@ Imports:
     rSW2utils (>= 0.1.0),
     rSW2st (>= 0.1.0),
     rSW2data (>= 0.1.0),
+    terra,
     raster,
     reshape2,
-    sf,
-    sp
+    sf
 Suggests:
-    FedData,
+    FedData (>= 3.0.2),
     soilDB (>= 2.5.7),
+    sp,
     utils,
     testthat (>= 3.0.0),
     spelling,

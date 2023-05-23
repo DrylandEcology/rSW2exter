@@ -470,6 +470,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
     nxlocs <- nrow(locations)
   } else {
+    stopifnot(requireNamespace("sp"))
     locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
     nxlocs <- length(locations)
   }
@@ -534,6 +535,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
         as.vector(res_mukeys[ids, "mukey", drop = TRUE])
 
       } else if (inherits(locations, "Spatial")) {
+        # sp is only used if soilDB < 2.6.10
         sp::over(
           x = sp::spTransform(
             locations[ids_chunks[[k]], ],

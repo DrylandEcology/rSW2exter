@@ -22,7 +22,7 @@ Imports:
     sf,
     sp
 Suggests:
-    FedData,
+    FedData (>= 3.0.2),
     soilDB (>= 2.5.7),
     utils,
     testthat (>= 3.0.0),

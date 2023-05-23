@@ -108,9 +108,9 @@ if (requireNamespace("FedData") && curl::has_internet()) {
     to_class = "sf",
     crs = 4326
   )
-  extent_polygon <- FedData::polygon_from_extent(
-    x = 1.1 * raster::extent(locations),
-    proj4string = "+init=epsg:4326"
+  extent_polygon <- terra::vect(
+    1.1 * terra::ext(locations),
+    crs = terra::crs(locations)
   )
 
   ### Download NED

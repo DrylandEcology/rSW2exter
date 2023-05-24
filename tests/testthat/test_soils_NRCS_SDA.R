@@ -5,18 +5,16 @@ test_that("Calculate NRCS organic soil horizons", {
     taxsubgrp = c("x", "histic", "x", "x", "x", "x", NA),
     desgnmaster = c("L", "L", "O", "x", "x", "x", NA),
     texture = c("x", "x", "x", "CE", "x", "x", NA),
-    lieutex = c("x", "x", "x", "x", "Muck", "x", NA)
+    lieutex = c("x", "x", "x", "x", "Muck", "x", NA),
+    stringsAsFactors = FALSE
   )
 
-  expect_equal(
+  expect_identical(
     is_NRCS_horizon_organic(x),
     c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, NA)
   )
 
-  expect_equal(
-    is_NRCS_horizon_organic(x[1, , drop = FALSE]),
-    FALSE
-  )
+  expect_false(is_NRCS_horizon_organic(x[1, , drop = FALSE]))
 })
 
 
@@ -52,14 +50,17 @@ test_that("Calculate NRCS soil depth", {
       var_soiltexture = var_stxt3
     )
 
-    expect_equal(locs_table_depths[1, "N_horizons"], id_sd)
-    expect_equal(locs_table_depths[1, "SoilDepth_cm"], soildepth)
-    expect_equal(locs_table_depths[1, 2 + id_sd], soildepth)
+    expect_equal(
+      locs_table_depths[1, "N_horizons"],
+      id_sd,
+      ignore_attr = c("waldo_opts", "type")
+    )
+    expect_identical(locs_table_depths[1, "SoilDepth_cm"], soildepth)
+    expect_identical(locs_table_depths[1, 2 + id_sd], soildepth)
     if (k > 1) {
-      expect_equal(
-        locs_table_depths[1, 2 + 1:(id_sd - 1)],
-        x[1:(id_sd - 1), "layer_depth"],
-        ignore_attr = TRUE
+      expect_identical(
+        unname(locs_table_depths[1, 2 + 1:(id_sd - 1)]),
+        x[1:(id_sd - 1), "layer_depth"]
       )
     }
   }
@@ -77,7 +78,7 @@ test_that("Extract soils from NRCS SDA", {
     nrow = 2
   )
 
-  mukeys <- c(471168, 1606800)
+  mukeys <- c(471168L, 1606800L)
 
   expected_soil_variables <- c("MUKEY", "COKEY", "Horizon_No")
   expected_depth_variables <- c("N_horizons", "SoilDepth_cm")
@@ -139,27 +140,37 @@ test_that("Extract soils from NRCS SDA", {
 
 
   tmp <- suppressWarnings(fetch_mukeys_spatially_NRCS_SDA(locations))
-  expect_equal(tmp[["mukeys"]], mukeys)
+  expect_identical(tmp[["mukeys"]], mukeys)
+
+
+  # Test chunking of `locations`
+  ids <- rep(seq_len(nrow(locations)), each = 50L)
+  tmp <- suppressWarnings(fetch_mukeys_spatially_NRCS_SDA(
+    x = locations[ids, , drop = FALSE],
+    chunk_size = 10L
+  ))
+  expect_identical(tmp[["mukeys"]], mukeys[ids])
+
 
 
   # Example 1: extract soils by mukey values
-  soils1a <- extract_soils_NRCS_SDA(mukeys = mukeys[1])
+  soils1a <- extract_soils_NRCS_SDA(mukeys = mukeys[[1L]])
   soils1 <- extract_soils_NRCS_SDA(mukeys = mukeys)
 
   for (kelem in expected_obj_results) {
-    expect_equal(soils1a[[kelem]], soils1[[kelem]][1, , drop = FALSE])
+    expect_identical(soils1a[[kelem]], soils1[[kelem]][1L, , drop = FALSE])
   }
 
   # Example 2: extract soils by geographic location
-  soils2a <- suppressWarnings(extract_soils_NRCS_SDA(x = locations[1, ]))
+  soils2a <- suppressWarnings(extract_soils_NRCS_SDA(x = locations[1L, ]))
   soils2 <- suppressWarnings(extract_soils_NRCS_SDA(x = locations))
 
   for (kelem in expected_obj_results) {
-    expect_equal(soils2a[[kelem]], soils2[[kelem]][1, , drop = FALSE])
+    expect_identical(soils2a[[kelem]], soils2[[kelem]][1L, , drop = FALSE])
   }
 
 
-  expect_equal(soils1, soils2)
+  expect_identical(soils1, soils2)
   expect_named(soils1, expected_obj_variables)
   expect_true(
     rSW2data::check_depth_table(

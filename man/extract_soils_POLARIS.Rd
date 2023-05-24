@@ -10,10 +10,10 @@ extract_soils_POLARIS(
   crs = 4326,
   vars = c("bd", "sand", "clay", "silt"),
   stat = "mean",
-  path,
+  path = ".",
   method = c("asis", "fix_with_buffer"),
-  fix_criteria = list(bd = list(op = "<", value = 0.6), texture = list(op = "<", value
-    = 0.5)),
+  fix_criteria = list(bd = list(op = "<", value = 0.6), texture = list(op = "<", value =
+    0.5)),
   buffer_m = NULL,
   fun = NULL,
   na.rm = TRUE,
@@ -35,7 +35,7 @@ be numeric as a \var{EPSG} number;
 a character string as a \var{wkt};
 a character string as a \var{proj4} (not recommended because outdated);
 or of a class including
-  \code{\link[raster:Raster-classes]{raster::Raster}},
+  \code{\link[raster:Raster-class]{raster::Raster}},
   \code{\link[sp:Spatial-class]{sp::Spatial}},
   \code{\link[sp:CRS-class]{sp::CRS}},
   or a \code{\link[sf]{sf}} or \code{\link[sf]{sfc}} class.}

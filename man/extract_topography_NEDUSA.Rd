@@ -8,7 +8,7 @@
 extract_topography_NEDUSA(
   x,
   crs = 4326,
-  path,
+  path = ".",
   file_datasets = list(elev = "ned_1s.tif", slope = file.path("terrain",
     "slope_ned_1s.tif"), aspect = file.path("terrain", "aspect_ned_1s.tif")),
   units_slope = c("degrees", "radians"),
@@ -32,7 +32,7 @@ be numeric as a \var{EPSG} number;
 a character string as a \var{wkt};
 a character string as a \var{proj4} (not recommended because outdated);
 or of a class including
-  \code{\link[raster:Raster-classes]{raster::Raster}},
+  \code{\link[raster:Raster-class]{raster::Raster}},
   \code{\link[sp:Spatial-class]{sp::Spatial}},
   \code{\link[sp:CRS-class]{sp::CRS}},
   or a \code{\link[sf]{sf}} or \code{\link[sf]{sfc}} class.}
@@ -108,9 +108,9 @@ if (requireNamespace("FedData") && curl::has_internet()) {
     to_class = "sf",
     crs = 4326
   )
-  extent_polygon <- FedData::polygon_from_extent(
-    x = 1.1 * raster::extent(locations),
-    proj4string = "+init=epsg:4326"
+  extent_polygon <- terra::vect(
+    1.1 * terra::ext(locations),
+    crs = terra::crs(locations)
   )
 
   ### Download NED
@@ -123,13 +123,11 @@ if (requireNamespace("FedData") && curl::has_internet()) {
 
   ### Derive slope and aspect
   for (opt in c("slope", "aspect")) {
-    tmp <- raster::terrain(
+    tmp <- terra::terrain(
       x = ned_1s_example,
-      opt = opt,
+      v = opt,
       unit = "degrees",
-      filename = filenames_ned_examples[[opt]],
-      datatype = "FLT4S",
-      options = c("COMPRESS=DEFLATE", "ZLEVEL=9", "INTERLEAVE=BAND")
+      filename = filenames_ned_examples[[opt]]
     )
   }
 

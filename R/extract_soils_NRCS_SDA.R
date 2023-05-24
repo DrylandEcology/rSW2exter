@@ -26,7 +26,7 @@ create_reference_for_NRCS_SDA <- function() {
 #'   representing mineral soils. \code{NA}s in the input propagate.
 #'
 #' @references Code based on \var{CheckTexture()} version \var{2020-Aug-31} from
-# nolint start
+# nolint start: line_length_linter
 #'   \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox/blob/master/SDA_Valu2Table.py}
 # nolint end
 #'
@@ -128,7 +128,7 @@ is_NRCS_horizon_organic <- function(x) {
 #'   }
 #'
 #' @references Code based on \var{CalcRZDepth()} version 2020-08-31:
-# nolint start
+# nolint start: line_length_linter
 #'   \url{https://github.com/ncss-tech/SoilDataDevelopmentToolbox/blob/master/SDA_Valu2Table.py}
 # nolint end
 #'   Note: currently ignores "dense" layer restrictions
@@ -230,15 +230,25 @@ calculate_soil_depth_NRCS <- function(
       data = x,
       INDICES = x[, var_site_id],
       FUN = function(xc) {
-        is_ec_restricted <-
+        ids_ec_restricted <- which(
           xc[, "check"] & !is.na(xc[, "ec_r"]) & xc[, "ec_r"] >= 16
-        is_ph_restricted <-
+        )
+        ids_ph_restricted <- which(
           xc[, "check"] & !is.na(xc[, "ph1to1h2o_r"]) &
           xc[, "ph1to1h2o_r"] <= 3.5
+        )
 
         c(
-          ec_restriction_depth = xc[which(is_ec_restricted)[1], "hzdept_r"],
-          ph_restriction_depth = xc[which(is_ph_restricted)[1], "hzdept_r"]
+          ec_restriction_depth = if (length(ids_ec_restricted) > 0) {
+            xc[ids_ec_restricted[[1L]], "hzdept_r"]
+          } else {
+            NA
+          },
+          ph_restriction_depth = if (length(ids_ph_restricted) > 0) {
+            xc[ids_ph_restricted[[1L]], "hzdept_r"]
+          } else {
+            NA
+          }
         )
       },
       simplify = FALSE
@@ -309,13 +319,13 @@ calculate_soil_depth_NRCS <- function(
     X = locs_table_depths,
     MARGIN = 1,
     FUN = function(x) {
-      findInterval(x[1], c(0, na.exclude(x[-1])), left.open = TRUE)
+      findInterval(x[[1L]], c(0, na.exclude(x[-1])), left.open = TRUE)
     }
   )
   ids <- which(!apply(
     X = locs_table_depths,
     MARGIN = 1,
-    FUN = function(x) x[1] == 0 || all(is.na(x[-1])) || x[1] %in% x[-1]
+    FUN = function(x) x[[1L]] == 0 || all(is.na(x[-1])) || x[[1L]] %in% x[-1]
   ))
   locs_table_depths[cbind(ids, 1 + L_at_soildepth[ids])] <-
     locs_table_depths[ids, "SoilDepth_cm"]
@@ -330,7 +340,9 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) !anyNA(x[1:2]) & x[1] > 0 & x[2] > 0 & x[3] %in% c(0, NA)
+    FUN = function(x) {
+      !anyNA(x[1:2]) & x[[1L]] > 0 & x[[2L]] > 0 & x[[3L]] %in% c(0, NA)
+    }
   )
   locs_table_depths[ids, "depth_L1"] <- locs_table_depths[ids, "SoilDepth_cm"]
 
@@ -344,7 +356,9 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) !anyNA(x[1:2]) & x[1] == 0 & x[2] > 0 & x[3] %in% c(0, NA)
+    FUN = function(x) {
+      !anyNA(x[1:2]) & x[[1L]] == 0 & x[[2L]] > 0 & x[[3L]] %in% c(0, NA)
+    }
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- 0
 
@@ -358,7 +372,7 @@ calculate_soil_depth_NRCS <- function(
       locs_table_depths
     ),
     MARGIN = 1,
-    FUN = function(x) !is.na(x[1]) & x[1] == 0 & x[2] > 0
+    FUN = function(x) !is.na(x[[1L]]) & x[[1L]] == 0 & x[[2L]] > 0
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- 0
 
@@ -373,7 +387,11 @@ calculate_soil_depth_NRCS <- function(
     ),
     MARGIN = 1,
     FUN = function(x) {
-      !is.na(x[1]) & x[1] > 0 & x[2] == 0 & !is.na(x[3]) & x[3] > 0
+      !is.na(x[[1L]]) &
+      x[[1L]] > 0 &
+      x[[2L]] == 0 &
+      !is.na(x[[3L]]) &
+      x[[3L]] > 0
     }
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- locs_table_depths[ids, "depth_L1"]
@@ -389,7 +407,7 @@ calculate_soil_depth_NRCS <- function(
     N_horizons = apply(
       X = locs_table_depths[, -1, drop = FALSE],
       MARGIN = 1,
-      function(x) sum(!is.na(x))
+      function(x) as.integer(sum(!is.na(x)))
     ),
     depth_L = locs_table_depths
   )
@@ -452,6 +470,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
     nxlocs <- nrow(locations)
   } else {
+    stopifnot(requireNamespace("sp"))
     locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
     nxlocs <- length(locations)
   }
@@ -510,10 +529,13 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
       res[[k]] <- if (inherits(locations, "sf")) {
-        ids <- unlist(unclass(sf::st_intersects(locations, res_mukeys)))
+        ids <- unlist(unclass(
+          sf::st_intersects(locations[ids_chunks[[k]], ], res_mukeys)
+        ))
         as.vector(res_mukeys[ids, "mukey", drop = TRUE])
 
       } else if (inherits(locations, "Spatial")) {
+        # sp is only used if soilDB < 2.6.10
         sp::over(
           x = sp::spTransform(
             locations[ids_chunks[[k]], ],
@@ -635,13 +657,18 @@ fetch_soils_from_NRCS_SDA <- function(
   res <- list()
 
   # trim off comments at top of file
-  sql_base <- sql_template[-{1:(grep("SELECT", sql_template)[1] - 1)}]
+  tmp_ids <- seq_len(grep("SELECT", sql_template, fixed = TRUE)[[1L]] - 1L)
+  sql_base <- if (length(tmp_ids) > 0) {
+    sql_template[-tmp_ids]
+  } else {
+    sql_template
+  }
 
   # remove majcompflag (may be necessary for STATSGO)
   if (majcompflag == "ignore") {
     txt_majcompflag <- "AND component.majcompflag = 'Yes'"
     tmp <- regexpr(txt_majcompflag, sql_base, fixed = TRUE)
-    iline <- which(tmp > 0)[1]
+    iline <- which(tmp > 0)[[1L]]
     sql_base[iline] <- sub(txt_majcompflag, "", sql_base[iline])
   }
 
@@ -649,7 +676,7 @@ fetch_soils_from_NRCS_SDA <- function(
   if (!only_soilcomp) {
     txt_nosoilflag <- "compkind NOT IN"
     tmp <- regexpr(txt_nosoilflag, sql_base, fixed = TRUE)
-    iline <- which(tmp > 0)[1]
+    iline <- which(tmp > 0)[[1L]]
     sql_base[iline] <- ""
   }
 
@@ -672,7 +699,7 @@ fetch_soils_from_NRCS_SDA <- function(
 
   # Identify lines where mukey values are injected
   tmp <- regexpr("mukey IN (%s)", sql_base, fixed = TRUE)
-  iline <- which(tmp > 0)[1]
+  iline <- which(tmp > 0)[[1L]]
 
 
   for (k in seq_along(ids_chunks)) {
@@ -862,7 +889,7 @@ fetch_soils_from_NRCS_SDA <- function(
 extract_soils_NRCS_SDA <- function(
   x,
   crs = 4326,
-  mukeys,
+  mukeys = NULL,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
@@ -883,9 +910,9 @@ extract_soils_NRCS_SDA <- function(
   }
 
   stopifnot(
-    !(missing(x) && missing(mukeys)),
+    !(missing(x) && is.null(mukeys)),
     curl::has_internet(),
-    missing(x) || missing(mukeys) || nrow(x) == length(mukeys)
+    missing(x) || is.null(mukeys) || nrow(x) == length(mukeys)
   )
 
   method <- match.arg(method)
@@ -903,7 +930,7 @@ extract_soils_NRCS_SDA <- function(
     row_id = NA,
     unit_id = NA,
     source = db,
-    mukey = if (missing(mukeys)) {
+    mukey = if (is.null(mukeys)) {
       fetch_mukeys_spatially_NRCS_SDA(
         x = x,
         crs = crs,
@@ -936,7 +963,7 @@ extract_soils_NRCS_SDA <- function(
     tmp_tag <- apply(
       locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
-      FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
+      FUN = function(x) paste0(as.integer(x[[1L]]), "_", x[[2L]])
     )
     locs_keys[, "unit_id"] <- match(tmp_tag, unique(tmp_tag))
   }
@@ -965,7 +992,7 @@ extract_soils_NRCS_SDA <- function(
     tmp_tag2 <- apply(
       res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
-      FUN = function(x) paste0(as.integer(x[1]), "_", x[2])
+      FUN = function(x) paste0(as.integer(x[[1L]]), "_", x[[2L]])
     )
     ids <- match(tmp_tag2, tmp_tag)
     res[, "unit_id"] <- locs_keys[ids, "unit_id"]
@@ -997,7 +1024,7 @@ extract_soils_NRCS_SDA <- function(
     data = res,
     INDICES = res[["unit_id"]],
     FUN = function(x) {
-      sapply(
+      vapply(
         X = x,
         FUN = function(v) {
           if (is.numeric(v)) {
@@ -1005,7 +1032,8 @@ extract_soils_NRCS_SDA <- function(
           } else {
             nlevels(factor(v)) > 1
           }
-        }
+        },
+        FUN.VALUE = NA
       )
     },
     simplify = FALSE
@@ -1103,7 +1131,7 @@ extract_soils_NRCS_SDA <- function(
           FUN = function(x) {
             # First element corresponds to TRUE
             # because we only look at soil units with an organic surface horizon
-            n <- rle(x)[["lengths"]][1]
+            n <- rle(x)[["lengths"]][[1L]]
             c(rep(TRUE, n), rep(FALSE, length(x) - n))
           },
           simplify = FALSE
@@ -1162,11 +1190,11 @@ extract_soils_NRCS_SDA <- function(
             xnew[, "Horizon_No"] <- seq_len(n)
 
             # Re-calculate upper/lower horizon depth limits
-            ids <- grep("hzdep", colnames(xnew))
+            ids <- grep("hzdep", colnames(xnew), fixed = TRUE)
             xnew[, ids] <- xnew[, ids] - removed_widths
 
             # Re-calculate depth restrictions
-            ids <- grep("_depth", colnames(xnew))
+            ids <- grep("_depth", colnames(xnew), fixed = TRUE)
             xnew[, ids] <- xnew[, ids] - removed_total
 
           } else {
@@ -1187,7 +1215,7 @@ extract_soils_NRCS_SDA <- function(
       # Put data back together
       res <- rbind(
         res[-ids_affected, ],
-        tmp[, !grepl("remove", colnames(tmp))]
+        tmp[, !grepl("remove", colnames(tmp), fixed = TRUE)]
       )
     }
   }
@@ -1285,9 +1313,10 @@ extract_soils_NRCS_SDA <- function(
   ids <- match(locs_keys[, "unit_id"], rownames(tmp_texture), nomatch = NA)
   locs_table_texture <- tmp_texture[ids, , drop = FALSE]
 
-  colnames(locs_table_texture) <- sapply(
-    X = strsplit(colnames(locs_table_texture), split = "_"),
-    FUN = function(x) paste0(x[2], "_L", x[1])
+  colnames(locs_table_texture) <- vapply(
+    X = strsplit(colnames(locs_table_texture), split = "_", fixed = TRUE),
+    FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
+    FUN.VALUE = NA_character_
   )
   rownames(locs_table_texture) <- locs_keys[, "row_id"]
 

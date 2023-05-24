@@ -32,7 +32,7 @@ create_reference_for_Miller1998_CONUSSoil <- function() {
     "Miller, D. A., and R. A. White. 1998. A conterminous United States ",
     "multilayer soil characteristics dataset for regional climate and ",
     "hydrology modeling. Earth Interactions 2:1-26. ",
-    "https://doi.org/10.1175%2F1087-3562%281998%29002%3C0001%3AACUSMS%3E2.3.CO%3B2 ", # nolint
+    "https://doi.org/10.1175%2F1087-3562%281998%29002%3C0001%3AACUSMS%3E2.3.CO%3B2 ", # nolint: line_length_linter
     "Data accessed [",
     format(as.POSIXlt(Sys.Date()), "%Y-%b-%e"),
     "]"
@@ -106,7 +106,7 @@ prepare_script_for_Miller1998_CONUSSoil <- function(
 #'
 #' @export
 create_conditioned_Miller1998_CONUSSoil <- function(
-  path,
+  path = ".",
   vars = c("rockdepm", "rockvol", "bd", "sand", "clay", "silt"),
   lower_limits_by_vars = c(
     rockdepm = 0, rockvol = 0, bd = 30, sand = 0, clay = 0, silt = 0
@@ -215,7 +215,7 @@ check_Miller1998_CONUSSoil <- function(
   )
 ) {
 
-  sapply(
+  vapply(
     vars,
     function(var) {
       file.exists(filepath_Miller1998_CONUSSoil(
@@ -223,7 +223,8 @@ check_Miller1998_CONUSSoil <- function(
         var = var,
         lower_limit = lower_limits_by_vars[var]
       ))
-    }
+    },
+    FUN.VALUE = NA
   )
 }
 
@@ -253,8 +254,8 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
   # Align with data crs
   ftmp <- filepath_Miller1998_CONUSSoil(
     path = path,
-    var = vars[1],
-    lower_limit = lower_limits_by_vars[vars[1]]
+    var = vars[[1L]],
+    lower_limit = lower_limits_by_vars[vars[[1L]]]
   )
 
   tmp_crs <- sf::st_crs(raster::brick(ftmp))
@@ -292,7 +293,7 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
         method = "simple"
       )
 
-      # nolint start
+      # nolint start: commented_code_linter
       # tmp <- do.call(
       #   "extract_rSFSW2",
       #   args = list(
@@ -312,7 +313,9 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
       }
 
     } else {
-      stop("Miller1998/CONUSSoil data ", shQuote(basename(ftmp)), " not found.")
+      stop(
+        "Miller1998 (CONUSSoil) data ", shQuote(basename(ftmp)), " not found."
+      )
     }
   }
 
@@ -377,7 +380,7 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
 extract_soils_Miller1998_CONUSSoil <- function(
   x,
   crs = 4326,
-  path,
+  path = ".",
   vars = c("bd", "rockvol", "sand", "clay", "silt"),
   lower_limits_by_vars = c(bd = 30, rockvol = 0, sand = 0, clay = 0, silt = 0),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
@@ -410,7 +413,7 @@ extract_soils_Miller1998_CONUSSoil <- function(
     verbose = verbose
   )
 
-  N_layers <- dim(res)[3]
+  N_layers <- dim(res)[[3L]]
 
 
   # Calculate restriction depth by >99% rock volume
@@ -595,9 +598,10 @@ extract_soils_Miller1998_CONUSSoil <- function(
     formula = id ~ Horizon_No + variable
   )
 
-  colnames(locs_table_texture) <- sapply(
-    X = strsplit(colnames(locs_table_texture), split = "_"),
-    FUN = function(x) paste0(x[2], "_L", x[1])
+  colnames(locs_table_texture) <- vapply(
+    X = strsplit(colnames(locs_table_texture), split = "_", fixed = TRUE),
+    FUN = function(x) paste0(x[[2L]], "_L", x[[1L]]),
+    FUN.VALUE = NA_character_
   )
 
 

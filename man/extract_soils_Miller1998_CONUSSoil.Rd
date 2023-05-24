@@ -8,7 +8,7 @@ for \pkg{SOILWAT2} applications}
 extract_soils_Miller1998_CONUSSoil(
   x,
   crs = 4326,
-  path,
+  path = ".",
   vars = c("bd", "rockvol", "sand", "clay", "silt"),
   lower_limits_by_vars = c(bd = 30, rockvol = 0, sand = 0, clay = 0, silt = 0),
   replace_missing_fragvol_with_zero = c("none", "all", "at_surface"),
@@ -31,7 +31,7 @@ be numeric as a \var{EPSG} number;
 a character string as a \var{wkt};
 a character string as a \var{proj4} (not recommended because outdated);
 or of a class including
-  \code{\link[raster:Raster-classes]{raster::Raster}},
+  \code{\link[raster:Raster-class]{raster::Raster}},
   \code{\link[sp:Spatial-class]{sp::Spatial}},
   \code{\link[sp:CRS-class]{sp::CRS}},
   or a \code{\link[sf]{sf}} or \code{\link[sf]{sfc}} class.}

@@ -8,7 +8,7 @@
 extract_soils_NRCS_SDA(
   x,
   crs = 4326,
-  mukeys,
+  mukeys = NULL,
   method = c("SSURGO", "STATSGO", "SSURGO_then_STATSGO"),
   sql_template = NA,
   only_majcomp = TRUE,
@@ -38,7 +38,7 @@ be numeric as a \var{EPSG} number;
 a character string as a \var{wkt};
 a character string as a \var{proj4} (not recommended because outdated);
 or of a class including
-  \code{\link[raster:Raster-classes]{raster::Raster}},
+  \code{\link[raster:Raster-class]{raster::Raster}},
   \code{\link[sp:Spatial-class]{sp::Spatial}},
   \code{\link[sp:CRS-class]{sp::CRS}},
   or a \code{\link[sf]{sf}} or \code{\link[sf]{sfc}} class.}

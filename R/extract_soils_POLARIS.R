@@ -567,7 +567,7 @@ extract_soils_POLARIS <- function(
       for (k in seq_len(N_layers)) {
         has_vals <-
           complete.cases(res[, var_stxt3, k]) &
-          apply(res[, var_stxt3, k, drop = FALSE], 1, sum, na.rm = TRUE) > 0
+          rowSums(res[, var_stxt3, k, drop = FALSE], na.rm = TRUE) > 0
 
         res[has_vals, var_stxt3, k] <- rSW2utils::scale_rounded_by_sum(
           x = res[has_vals, var_stxt3, k],

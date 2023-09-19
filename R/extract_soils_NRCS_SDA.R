@@ -235,7 +235,7 @@ calculate_soil_depth_NRCS <- function(
         )
         ids_ph_restricted <- which(
           xc[, "check"] & !is.na(xc[, "ph1to1h2o_r"]) &
-          xc[, "ph1to1h2o_r"] <= 3.5
+            xc[, "ph1to1h2o_r"] <= 3.5
         )
 
         c(
@@ -388,10 +388,10 @@ calculate_soil_depth_NRCS <- function(
     MARGIN = 1,
     FUN = function(x) {
       !is.na(x[[1L]]) &
-      x[[1L]] > 0 &
-      x[[2L]] == 0 &
-      !is.na(x[[3L]]) &
-      x[[3L]] > 0
+        x[[1L]] > 0 &
+        x[[2L]] == 0 &
+        !is.na(x[[3L]]) &
+        x[[3L]] > 0
     }
   )
   locs_table_depths[ids, "SoilDepth_cm"] <- locs_table_depths[ids, "depth_L1"]
@@ -718,16 +718,14 @@ fetch_soils_from_NRCS_SDA <- function(
     tmp_sql <- paste(sql, collapse = " ")
     res[[k]] <- suppressMessages(soilDB::SDA_query(tmp_sql))
 
-    if (length(res) > 0) {
-      if (inherits(res[[k]], "try-error")) {
-        message(
-          "Error produced during call to `soilDB::SDA_query`; ",
-          "result will be set to NULL; query leading to error was: ",
-          tmp_sql
-        )
-        warning(res[[k]])
-        res[[k]] <- NULL
-      }
+    if (length(res) > 0 && inherits(res[[k]], "try-error")) {
+      message(
+        "Error produced during call to `soilDB::SDA_query`; ",
+        "result will be set to NULL; query leading to error was: ",
+        tmp_sql
+      )
+      warning(res[[k]])
+      res[[k]] <- NULL
     }
 
     if (has_progress_bar) {
@@ -960,12 +958,14 @@ extract_soils_NRCS_SDA <- function(
 
   if (FALSE) {
     # e.g., unique soil units defined by mukey-component combinations
+    # nolint start: object_usage_linter.
     tmp_tag <- apply(
       locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[[1L]]), "_", x[[2L]])
     )
     locs_keys[, "unit_id"] <- match(tmp_tag, unique(tmp_tag))
+    # nolint end: object_usage_linter.
   }
 
 
@@ -989,6 +989,7 @@ extract_soils_NRCS_SDA <- function(
 
   if (FALSE) {
     # e.g., unique soil units defined by mukey-compname combinations
+    # nolint start: object_usage_linter.
     tmp_tag2 <- apply(
       res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
@@ -996,6 +997,7 @@ extract_soils_NRCS_SDA <- function(
     )
     ids <- match(tmp_tag2, tmp_tag)
     res[, "unit_id"] <- locs_keys[ids, "unit_id"]
+    # nolint end: object_usage_linter.
   }
 
 
@@ -1279,7 +1281,7 @@ extract_soils_NRCS_SDA <- function(
     if (all(var_stxt3 %in% colnames(res))) {
       has_vals <-
         complete.cases(res[, var_stxt3]) &
-        apply(res[, var_stxt3, drop = FALSE], 1, sum, na.rm = TRUE) > 0
+        rowSums(res[, var_stxt3, drop = FALSE], na.rm = TRUE) > 0
 
       res[has_vals, var_stxt3] <- rSW2utils::scale_rounded_by_sum(
         x = res[has_vals, var_stxt3],
@@ -1326,8 +1328,8 @@ extract_soils_NRCS_SDA <- function(
   ids_h0 <- which(locs_table_depths[, "N_horizons"] == 0)
   if (
     length(ids_h0) > 0 &&
-    !missing(x) &&
-    method == "SSURGO_then_STATSGO"
+      !missing(x) &&
+      method == "SSURGO_then_STATSGO"
   ) {
 
     # Call again for nosoil rows and extract from STATSGO instead of SSURGO

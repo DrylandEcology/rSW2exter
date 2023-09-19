@@ -1,4 +1,5 @@
 # rSW2exter v0.2.1-9000
+* Linting updated to `lintr` >= 3.1
 
 
 # rSW2exter v0.2.0

@@ -1,3 +1,6 @@
+# rSW2exter v0.2.1-9000
+
+
 # rSW2exter v0.2.0
 * `fetch_mukeys_spatially_NRCS_SDA()` now handles versions of "soilDB"
   from `2.5.7` to at least `2.6.14`.

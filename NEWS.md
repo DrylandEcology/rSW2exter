@@ -1,4 +1,6 @@
 # rSW2exter v0.2.1-9000
+* `fetch_mukeys_spatially_NRCS_SDA()` now requires at least
+  `"soilDB"` version `2.6.10` (and no longer supports `"sp"`).
 * Linting updated to `lintr` >= 3.1
 
 

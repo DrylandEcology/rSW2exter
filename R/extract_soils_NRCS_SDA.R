@@ -457,23 +457,15 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 
   stopifnot(
     requireNamespace("soilDB"),
-    "db" %in% methods::formalArgs(soilDB::SDA_spatialQuery),
     curl::has_internet()
   )
 
-  vsoilDB <- getNamespaceVersion("soilDB")
 
   #------ Make sure inputs are correctly formatted
   db <- match.arg(db)
 
-  if (vsoilDB >= as.numeric_version("2.6.10")) {
-    locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
-    nxlocs <- nrow(locations)
-  } else {
-    stopifnot(requireNamespace("sp"))
-    locations <- rSW2st::as_points(x, to_class = "sp", crs = crs)
-    nxlocs <- length(locations)
-  }
+  locations <- rSW2st::as_points(x, to_class = "sf", crs = crs)
+  nxlocs <- nrow(locations)
 
 
   #--- Extract mukeys for each point location
@@ -505,13 +497,9 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
   for (k in seq_len(N_chunks)) {
     res_mukeys <- try(
       soilDB::SDA_spatialQuery(
-        geom = locations[ids_chunks[[k]], ],
+        geom = locations[ids_chunks[[k]], ], # sf since soilDB v2.6.10
         db = db,
-        what = if (vsoilDB >= as.numeric_version("2.6.3")) {
-          "mupolygon"
-        } else {
-          "geom"
-        }
+        what = "mupolygon" # since soilDB v2.6.3
       ),
       silent = FALSE
     )
@@ -528,25 +516,16 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       # Extract mukey for each location because
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
-      res[[k]] <- if (inherits(locations, "sf")) {
-        ids <- unlist(unclass(
-          sf::st_intersects(locations[ids_chunks[[k]], ], res_mukeys)
-        ))
-        as.vector(res_mukeys[ids, "mukey", drop = TRUE])
+      tmp <- sf::st_intersects(locations[ids_chunks[[k]], ], res_mukeys)
+      ltmp <- lengths(tmp)
 
-      } else if (inherits(locations, "Spatial")) {
-        # sp is only used if soilDB < 2.6.10
-        sp::over(
-          x = sp::spTransform(
-            locations[ids_chunks[[k]], ],
-            CRSobj = sp::proj4string(res_mukeys)
-          ),
-          y = res_mukeys
-        )[, "mukey"]
-
-      } else {
-        stop(class(res_mukeys), "/", class(locations), " is not implemented.")
+      if (any(ltmp == 0L, ltmp > 1L)) {
+        stop("Spatial SDA query return no or more than one result.")
       }
+
+      res[[k]] <- as.vector(
+        res_mukeys[unlist(unclass(tmp)), "mukey", drop = TRUE]
+      )
     }
 
     if (has_progress_bar) {

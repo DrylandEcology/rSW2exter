@@ -1,7 +1,7 @@
-# rSW2exter v0.2.1-9000
+# rSW2exter v0.2.1
 * `fetch_mukeys_spatially_NRCS_SDA()` now requires at least
   `"soilDB"` version `2.6.10` (and no longer supports `"sp"`).
-* Linting updated to `lintr` >= 3.1
+* Linting updated to `lintr` >= `3.1`.
 
 
 # rSW2exter v0.2.0
@@ -14,7 +14,7 @@
 * `extract_soils_NRCS_SDA()` gains argument `only_soilcomp` which excludes
   non-soil components, i.e., those that are not "Miscellaneous areas" and
   are not `"NOTCOM"` (not completed).
-* Linting updated to `lintr` >= 3 and
+* Linting updated to `lintr` >= `3.0` and
   lint workflow switched from package tests to Github Action (#5).
 
 # rSW2exter v0.1.0

@@ -1,6 +1,6 @@
 Package: rSW2exter
 Title: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
-Version: 0.2.1-9000
+Version: 0.2.1
 Authors@R: c(
   person(
     "Daniel", "Schlaepfer",
@@ -26,7 +26,7 @@ Suggests:
     soilDB (>= 2.6.10),
     utils,
     testthat (>= 3.0.0),
-    spelling,
+    spelling (>= 2.1.0),
     lintr (>= 3.1.0),
     covr
 Remotes:

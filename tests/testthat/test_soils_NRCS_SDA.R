@@ -98,6 +98,7 @@ test_that("Extract soils from NRCS SDA", {
   x[, "organic"] <- is_NRCS_horizon_organic(x)
   expect_true(all(x[, "organic"] %in% c(NA, FALSE, TRUE)))
 
+  # nolint start: implicit_assignment_linter.
   expect_silent(
     sd1 <- calculate_soil_depth_NRCS(
       x,
@@ -120,6 +121,7 @@ test_that("Extract soils from NRCS SDA", {
       var_soiltexture = var_soiltexture
     )
   )
+  # nolint end: implicit_assignment_linter.
 
   expect_true(all(expected_depth_variables %in% colnames(sd1)))
   expect_true(

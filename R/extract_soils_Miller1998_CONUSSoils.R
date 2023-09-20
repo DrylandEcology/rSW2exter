@@ -567,7 +567,7 @@ extract_soils_Miller1998_CONUSSoil <- function(
     if (all(var_stxt3 %in% colnames(res))) {
       has_vals <-
         complete.cases(res[, var_stxt3]) &
-        apply(res[, var_stxt3, drop = FALSE], 1, sum, na.rm = TRUE) > 0
+        rowSums(res[, var_stxt3, drop = FALSE], na.rm = TRUE) > 0
 
       res[has_vals, var_stxt3] <- rSW2utils::scale_rounded_by_sum(
         x = res[has_vals, var_stxt3],

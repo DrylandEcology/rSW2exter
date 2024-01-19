@@ -2,8 +2,8 @@
 % Please edit documentation in R/rSW2extern-package.R
 \docType{package}
 \name{rSW2exter}
-\alias{rSW2exter}
 \alias{rSW2exter-package}
+\alias{rSW2exter}
 \title{Package \pkg{rSW2exter}: Access external data as input
  for SOILWAT2 and STEPWAT2 simulations}
 \description{

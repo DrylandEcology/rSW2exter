@@ -67,7 +67,9 @@ prepare_script_for_POLARIS <- function(
   # create requests and add one for vrt
   requests <- c(
     "vrt",
+    # nolint start: paste_linter.
     paste(rep(vars, each = length(stat)), rep(stat, length(vars)), sep = "/")
+    # nolint end: paste_linter.
   )
 
   # create requests and write script out to disk
@@ -76,6 +78,7 @@ prepare_script_for_POLARIS <- function(
     paste0("wget_POLARIS_", format(as.POSIXlt(Sys.Date()), "%Y%m%d"), ".sh")
   )
 
+  # nolint start: paste_linter.
   writeLines(
     text = c(
       bash_shebang,
@@ -88,6 +91,7 @@ prepare_script_for_POLARIS <- function(
     ),
     con = file
   )
+  # nolint end: paste_linter.
 
   invisible(file)
 }

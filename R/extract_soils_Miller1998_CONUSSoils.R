@@ -125,7 +125,10 @@ create_conditioned_Miller1998_CONUSSoil <- function(
       limit <- as.integer(lower_limits_by_vars[vars[k]])
       ftmp_cond <- filepath_Miller1998_CONUSSoil(path, vars[k], limit)
 
-      if (!file.exists(ftmp_cond)) {
+      if (file.exists(ftmp_cond)) {
+        res[k] <- TRUE
+
+      } else {
         fun_cond <- compiler::cmpfun(
           function(x) ifelse(!is.na(x) & x > limit, x, NA)
         )
@@ -144,8 +147,6 @@ create_conditioned_Miller1998_CONUSSoil <- function(
         } else {
           res[k] <- TRUE
         }
-      } else {
-        res[k] <- TRUE
       }
 
     } else {

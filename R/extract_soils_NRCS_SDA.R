@@ -217,10 +217,12 @@ calculate_soil_depth_NRCS <- function(
 
   # Calculate additional restrictions
   if (restrict_by_ec_or_ph) {
+    # nolint start: scalar_in_linter.
     x[, "is_organic"] <- x[, "organic"] %in% TRUE
     x[, "is_histosol_histic"] <-
       x[, "taxorder"] %in% "Histosols" |
       grepl("histic", x[, "taxsubgrp"], ignore.case = TRUE)
+    # nolint end: scalar_in_linter.
 
     # Restrictions pH < 3.5 or EC > 16 apply only
     # if horizon is non-organic and not a histosol/histic soil
@@ -508,11 +510,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       warning("Spatial SDA query produced error: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
-    } else if (!inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
-      warning("Spatial SDA query returned non-spatial object: chunk = ", k)
-      res[[k]] <- rep(NA, length(ids_chunks[[k]]))
-
-    } else {
+    } else if (inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
       # Extract mukey for each location because
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
@@ -526,6 +524,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       res[[k]] <- as.vector(
         res_mukeys[unlist(unclass(tmp)), "mukey", drop = TRUE]
       )
+
+    } else {
+      warning("Spatial SDA query returned non-spatial object: chunk = ", k)
+      res[[k]] <- rep(NA, length(ids_chunks[[k]]))
     }
 
     if (has_progress_bar) {
@@ -935,17 +937,18 @@ extract_soils_NRCS_SDA <- function(
     unique(locs_keys[, "mukey"])
   )
 
+
+  # nolint start: object_usage_linter, unreachable_code_linter.
   if (FALSE) {
     # e.g., unique soil units defined by mukey-component combinations
-    # nolint start: object_usage_linter.
     tmp_tag <- apply(
       locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[[1L]]), "_", x[[2L]])
     )
     locs_keys[, "unit_id"] <- match(tmp_tag, unique(tmp_tag))
-    # nolint end: object_usage_linter.
   }
+  # nolint end
 
 
   #--- Download soil data from NRCS SDA web service (for unique "mukeys")
@@ -966,9 +969,9 @@ extract_soils_NRCS_SDA <- function(
   ids <- match(res[, "MUKEY"], locs_keys[, "mukey"])
   res[, "unit_id"] <- locs_keys[ids, "unit_id"]
 
+  # nolint start: object_usage_linter, unreachable_code_linter.
   if (FALSE) {
     # e.g., unique soil units defined by mukey-compname combinations
-    # nolint start: object_usage_linter.
     tmp_tag2 <- apply(
       res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
@@ -976,8 +979,8 @@ extract_soils_NRCS_SDA <- function(
     )
     ids <- match(tmp_tag2, tmp_tag)
     res[, "unit_id"] <- locs_keys[ids, "unit_id"]
-    # nolint end: object_usage_linter.
   }
+  # nolint end
 
 
   # Copy extracted soil information to table `locs_keys` (based on unit_id)
@@ -1083,7 +1086,9 @@ extract_soils_NRCS_SDA <- function(
 
 
   #--- Remove organic horizons
+  # nolint start: scalar_in_linter.
   res[, "organic"] <- is_NRCS_horizon_organic(res) %in% TRUE
+  # nolint end: scalar_in_linter.
 
   remove_organic_horizons <- match.arg(remove_organic_horizons)
 
@@ -1093,7 +1098,8 @@ extract_soils_NRCS_SDA <- function(
     if (remove_organic_horizons == "all") {
       is_remove <- is_organic
 
-      if (verbose && (n_remove <- sum(is_remove)) > 0) {
+      n_remove <- sum(is_remove)
+      if (verbose && n_remove > 0) {
         message("Removed organic horizons: n = ", n_remove)
       }
 
@@ -1122,7 +1128,8 @@ extract_soils_NRCS_SDA <- function(
       }
 
 
-      if (verbose && (n_remove <- sum(is_remove)) > 0) {
+      n_remove <- sum(is_remove)
+      if (verbose && n_remove > 0) {
         n_oburied <- sum(is_organic & !is_remove)
 
         message(

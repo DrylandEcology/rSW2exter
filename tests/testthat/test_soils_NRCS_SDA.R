@@ -73,12 +73,20 @@ test_that("Extract soils from NRCS SDA", {
   skip_if_not_installed("soilDB")
   skip_if_offline()
 
+  sql <- readLines(
+    system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
+  )
+  sql2 <- readLines(
+    system.file("NRCS", "nrcs_sql_template2.sql", package = "rSW2exter")
+  )
+
   locations <- matrix(
     data = c(-120.325, -111.245, 39.855, 36.753),
     nrow = 2
   )
 
   mukeys <- c(471168L, 1606800L)
+  compnames <- c("Fopiano family", "Mespun")
 
   expected_soil_variables <- c("MUKEY", "COKEY", "Horizon_No")
   expected_depth_variables <- c("N_horizons", "SoilDepth_cm")
@@ -90,7 +98,8 @@ test_that("Extract soils from NRCS SDA", {
   var_soiltexture <- c("sandtotal_r", "claytotal_r", "silttotal_r")
 
 
-  x <- fetch_soils_from_NRCS_SDA(mukeys_unique = mukeys)
+  #--- Fetch soil properties ------
+  x <- fetch_soils_from_NRCS_SDA(bind_params = mukeys, sql_template = sql)
 
   expect_true(all(expected_soil_variables %in% colnames(x)))
   expect_true(all(x[, "MUKEY"] %in% mukeys))
@@ -141,6 +150,19 @@ test_that("Extract soils from NRCS SDA", {
   )
 
 
+  #--- Use multiple parameters to select soils
+  x2 <- fetch_soils_from_NRCS_SDA(
+    bind_params = data.frame(mukeys, compnames),
+    sql_template = sql2,
+    injection_format = "(VALUES %s) AS t (mm, cn)"
+  )
+  x2[, "organic"] <- is_NRCS_horizon_organic(x2)
+
+  expect_identical(x2, x)
+
+
+
+  #--- Spatial map units ------
   tmp <- suppressWarnings(fetch_mukeys_spatially_NRCS_SDA(locations))
   expect_identical(tmp[["mukeys"]], mukeys)
 
@@ -155,6 +177,7 @@ test_that("Extract soils from NRCS SDA", {
 
 
 
+  #--- Extract soils ------
   # Example 1: extract soils by mukey values
   soils1a <- extract_soils_NRCS_SDA(mukeys = mukeys[[1L]])
   soils1 <- extract_soils_NRCS_SDA(mukeys = mukeys)

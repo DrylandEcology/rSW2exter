@@ -55,9 +55,8 @@ should query \var{"SSURGO"}, \var{"STATSGO"}, or
 e.g., due to unmapped areas, with \var{"STATSGO"} data.}
 
 \item{sql_template}{A character vector.
-A valid \var{T-SQL} query with a \var{WHERE} clause so that the code can
-inject chunks of \code{mukeys_unique} values,
-i.e., \var{"mapunit.mukey IN (\%s)"}.
+A valid \code{T-SQL} query with a \code{"WHERE"} clause so that the code can
+inject chunks of \code{bind_params} values via format \code{injection_format}.
 If \code{NA}, then the default query is loaded, see examples.}
 
 \item{only_majcomp}{A logical value. If \code{TRUE} and extraction is
@@ -69,7 +68,7 @@ Ignored if extraction is from \var{"STATSGO"}.}
 
 \item{only_soilcomp}{A logical value. If \code{TRUE}, then query restricts
 to soil components. If \code{FALSE}, then query includes
-all components including "Miscellaneous areas" and \var{"NOTCOM"}
+all components including \code{"Miscellaneous areas"} and \code{"NOTCOM"}
 (not complete) components.}
 
 \item{remove_organic_horizons}{A character string. Method

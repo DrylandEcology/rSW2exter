@@ -36,7 +36,7 @@ cbind(
 
 \dontrun{
 if (curl::has_internet()) {
-  x <- fetch_soils_from_NRCS_SDA(mukeys_unique = c(471168, 1606800))
+  x <- fetch_soils_from_NRCS_SDA(bind_params = c(471168, 1606800))
   is_NRCS_horizon_organic(x)
 }
 }

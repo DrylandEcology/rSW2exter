@@ -744,7 +744,7 @@ fetch_soils_from_NRCS_SDA <- function(
     tmp_sql <- paste(sql, collapse = " ")
     res[[k]] <- suppressMessages(soilDB::SDA_query(tmp_sql))
 
-    if (length(res) > 0 && inherits(res[[k]], "try-error")) {
+    if (length(res) >= k && inherits(res[[k]], "try-error")) {
       message(
         "Error produced during call to `soilDB::SDA_query`; ",
         "result will be set to NULL; query leading to error was: ",

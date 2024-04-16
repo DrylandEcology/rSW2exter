@@ -11,6 +11,12 @@ create_reference_for_NRCS_SDA <- function() {
 }
 
 
+# Single quotes for T-SQL
+# `shQuote()` returns double quotes on windows OS
+sqlQuote <- function(x) {
+  paste0("'", x, "'", recycle0 = TRUE)
+}
+
 
 #' Check whether a \var{NRCS} soil horizon is organic
 #'
@@ -728,13 +734,13 @@ fetch_soils_from_NRCS_SDA <- function(
       if (hasMultiParams) {
         paste0(
           "(",
-          apply(tmp, 1, function(x) toString(shQuote(x))),
+          apply(tmp, 1, function(x) toString(sqlQuote(x))),
           ")",
           collapse = ","
         )
 
       } else {
-        paste(shQuote(tmp), collapse = ",")
+        paste(sqlQuote(tmp), collapse = ",")
       }
     )
 

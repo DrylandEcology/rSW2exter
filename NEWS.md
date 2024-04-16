@@ -1,3 +1,14 @@
+# rSW2exter v0.2.2-9000
+* `fetch_soils_from_NRCS_SDA()` gains the ability to inject queries with
+  multi-variable parameters. It gains two new arguments
+  (with backwards compatible default values):
+    * `"bind_params"` that replaces the deprecated argument `"mukeys_unique"`
+    * `"injection_format"` that identifies the format string used to
+      bind/inject values in parametrized queries
+* `fetch_soils_from_NRCS_SDA()` now builds `SQL` queries consistently with
+  single quotes.
+
+
 # rSW2exter v0.2.1
 * `fetch_mukeys_spatially_NRCS_SDA()` now requires at least
   `"soilDB"` version `2.6.10` (and no longer supports `"sp"`).

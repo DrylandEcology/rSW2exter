@@ -15,12 +15,12 @@ test_that("Extract from NED USA", {
   )
 
   locations <- rSW2st::as_points(
-    matrix(data = c(-120.325, -120.328, 43.328, 43.242), nrow = 2),
+    matrix(data = c(-120.34, -120.33, 43.23, 43.24), nrow = 2),
     to_class = "sf",
     crs = 4326
   )
   extent_polygon <- terra::vect(
-    1.1 * terra::ext(locations),
+    1.2 * terra::ext(locations),
     crs = terra::crs(locations)
   )
 
@@ -51,6 +51,16 @@ test_that("Extract from NED USA", {
     method = "simple"
   )
 
+  ### Get just elevation values
+  #nolint start: extraction_operator_linter.
+  vals_elev <- extract_topography_NEDUSA(
+    locations,
+    path = path_ned,
+    file_datasets = filenames_ned_examples["elev"],
+    method = "simple"
+  )
+  #nolint end: extraction_operator_linter.
+
 
   #--- Expectations
   expect_identical(nrow(vals_topo), nrow(locations))
@@ -67,6 +77,14 @@ test_that("Extract from NED USA", {
       (vals_topo[, "aspect"] >= -180 & vals_topo[, "aspect"] <= 180)
     )
   )
+
+  expect_identical(nrow(vals_elev), nrow(locations))
+  expect_identical(ncol(vals_elev), 1L)
+  expect_identical(colnames(vals_elev), "elev")
+  expect_type(as.matrix(vals_elev), "double")
+
+  expect_equal(vals_elev, vals_topo["elev"]) #nolint: extraction_operator_linter
+
 
 
   # Clean up

@@ -42,6 +42,10 @@
 #'   then, derive slope and aspect,
 #'   e.g., via \code{\link[raster]{terrain}}
 #'   and make sure that gridcells without aspect are correctly encoded.
+#'   Please, note that \code{\link[FedData]{get_ned}} downloads tiles
+#'   in a temporary folder and returns a mosaic-ed file; this can be slow
+#'   for large spatial extents. Preferably, download tiles to a local folder
+#'   and build a \var{vrt} across the tiles.
 #'
 #' @examples
 #' \dontrun{
@@ -55,7 +59,7 @@
 #'   )
 #'
 #'   locations <- rSW2st::as_points(
-#'     matrix(data = c(-120.325, -120.328, 43.328, 43.242), nrow = 2),
+#'     matrix(data = c(-120.34, -120.33, 43.23, 43.24), nrow = 2),
 #'     to_class = "sf",
 #'     crs = 4326
 #'   )
@@ -96,6 +100,15 @@
 #'   colnames(vals_topo) <- cns[colnames(vals_topo)]
 #'   vals_topo
 #'
+#'   ### Get elevation values
+#'   vals_elev <- extract_topography_NEDUSA(
+#'     locations,
+#'     path = path_ned,
+#'     file_datasets = filenames_ned_examples["elev"],
+#'     south_aspect = 180,
+#'     method = "simple"
+#'   )
+#'
 #'   # Clean up
 #'   unlink(file.path(path_ned, unlist(filenames_ned_examples)))
 #' }
@@ -134,7 +147,7 @@ extract_topography_NEDUSA <- function(
   has_topo <- file.exists(unlist(filepaths_topo))
   names(has_topo) <- names(filepaths_topo)
 
-  stopifnot(sum(has_topo) > 1)
+  stopifnot(sum(has_topo) > 0L)
 
 
   #--- Load topographic data

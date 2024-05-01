@@ -48,3 +48,6 @@ doc
 # Locally knitted vignettes
 vignettes/*.pdf
 vignettes/*.html
+
+# Local test data objects
+tests/test_data/NED1

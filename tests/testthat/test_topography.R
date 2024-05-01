@@ -2,17 +2,20 @@
 test_that("Extract from NED USA", {
   skip_on_ci()
   skip_on_cran()
-  skip_if_not_installed("FedData")
   skip_if_offline()
 
+  # path relative to rSW2exter/tests/testthat/
+  path_ned <- file.path("..", "test_data", "NED1")
+  dir.create(path_ned, recursive = TRUE, showWarnings = FALSE)
 
   label_ned <- "ned_1s_example"
-  path_ned <- "."
-  filenames_ned_examples <- list(
+  fnames_ned <- list(
     elev = paste0(label_ned, "_NED_1.tif"),
     slope = paste0("slope_", label_ned, "_NED_1.tif"),
     aspect = paste0("aspect_", label_ned, "_NED_1.tif")
   )
+  paths_ned <- file.path(path_ned, fnames_ned)
+  names(paths_ned) <- names(fnames_ned)
 
   locations <- rSW2st::as_points(
     matrix(data = c(-120.34, -120.33, 43.23, 43.24), nrow = 2),
@@ -24,29 +27,37 @@ test_that("Extract from NED USA", {
     crs = terra::crs(locations)
   )
 
-  ### Download NED
-  ned_1s_example <- suppressMessages(FedData::get_ned(
-    template = extent_polygon,
-    label = label_ned,
-    res = 1,
-    extraction.dir = path_ned
-  ))
+  ### Download NED if (needed)
+  ned_1s_example <- if (file.exists(paths_ned[["elev"]])) {
+    terra::rast(paths_ned[["elev"]])
+
+  } else {
+    skip_if_not_installed("FedData")
+    suppressMessages(FedData::get_ned(
+      template = extent_polygon,
+      label = label_ned,
+      res = 1,
+      extraction.dir = path_ned
+    ))
+  }
 
   ### Derive slope and aspect
   for (opt in c("slope", "aspect")) {
-    tmp <- terra::terrain(
-      x = ned_1s_example,
-      v = opt,
-      unit = "degrees",
-      filename = filenames_ned_examples[[opt]]
-    )
+    if (!file.exists(paths_ned[[opt]])) {
+      tmp <- terra::terrain(
+        x = ned_1s_example,
+        v = opt,
+        unit = "degrees",
+        filename = paths_ned[[opt]]
+      )
+    }
   }
 
   ### Get values
   vals_topo <- extract_topography_NEDUSA(
     locations,
     path = path_ned,
-    file_datasets = filenames_ned_examples,
+    file_datasets = fnames_ned,
     south_aspect = 180,
     method = "simple"
   )
@@ -56,7 +67,7 @@ test_that("Extract from NED USA", {
   vals_elev <- extract_topography_NEDUSA(
     locations,
     path = path_ned,
-    file_datasets = filenames_ned_examples["elev"],
+    file_datasets = fnames_ned["elev"],
     method = "simple"
   )
   #nolint end: extraction_operator_linter.
@@ -85,8 +96,4 @@ test_that("Extract from NED USA", {
 
   expect_equal(vals_elev, vals_topo["elev"]) #nolint: extraction_operator_linter
 
-
-
-  # Clean up
-  unlink(file.path(path_ned, unlist(filenames_ned_examples)))
 })

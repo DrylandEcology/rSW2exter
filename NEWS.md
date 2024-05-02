@@ -1,4 +1,4 @@
-# rSW2exter v0.2.2-9000
+# rSW2exter v0.2.2
 * `fetch_soils_from_NRCS_SDA()` gains the ability to inject queries with
   multi-variable parameters. It gains two new arguments
   (with backwards compatible default values):

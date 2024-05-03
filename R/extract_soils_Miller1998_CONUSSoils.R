@@ -113,7 +113,10 @@ create_conditioned_Miller1998_CONUSSoil <- function(
   )
 ) {
 
-  stopifnot(vars %in% names(lower_limits_by_vars))
+  stopifnot(
+    requireNamespace("raster"),
+    vars %in% names(lower_limits_by_vars)
+  )
 
   res <- rep(FALSE, length(vars))
   names(res) <- vars
@@ -247,6 +250,7 @@ check_Miller1998_CONUSSoil <- function(
 fetch_soils_from_Miller1998_CONUSSoil <- function(
   x, crs, vars, lower_limits_by_vars, path, verbose
 ) {
+  stopifnot(requireNamespace("raster"))
 
   #--- Make sure inputs are correctly formatted
   depths <- depth_profile_Miller1998_CONUSSoil()

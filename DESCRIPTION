@@ -18,12 +18,12 @@ Imports:
     rSW2st (>= 0.1.0),
     rSW2data (>= 0.1.0),
     terra,
-    raster,
     reshape2,
     sf
 Suggests:
     FedData (>= 3.0.2),
     soilDB (>= 2.6.10),
+    raster,
     utils,
     testthat (>= 3.0.0),
     spelling (>= 2.1.0),

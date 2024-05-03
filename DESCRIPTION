@@ -1,6 +1,6 @@
 Package: rSW2exter
 Title: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
-Version: 0.3.0-9000
+Version: 0.3.0
 Authors@R: c(
   person(
     "Daniel", "Schlaepfer",

@@ -1,4 +1,4 @@
-# rSW2exter v0.3.0-9000
+# rSW2exter v0.3.0
 * Functionality to download, query, and extract soils data from `SOLUS100`
     * `depth_profile_SOLUS100()`, `variables_SOLUS100()`, and
       `filenames_SOLUS100()` provide meta data.
@@ -6,6 +6,7 @@
       a local copy.
     * `extract_soil_SOLUS100()` (and bare-bones `fetch_soils_from_SOLUS100()`)
       extract soils data from a local copy.
+* The `"raster"` package is now "suggested" (instead of "imported").
 
 
 # rSW2exter v0.2.2

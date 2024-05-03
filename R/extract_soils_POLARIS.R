@@ -237,6 +237,7 @@ fetch_soils_from_POLARIS <- function(
   na.rm = TRUE,
   verbose = FALSE
 ) {
+  stopifnot(requireNamespace("raster"))
 
   depths <- depth_profile_POLARIS()
 

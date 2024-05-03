@@ -50,4 +50,5 @@ vignettes/*.pdf
 vignettes/*.html
 
 # Local test data objects
+tests/test_data/SOLUS100
 tests/test_data/NED1

@@ -14,3 +14,4 @@
 ^\.Rproj\.user$
 ^cran-comments\.md$
 ^NEWS\.md$
+^tests/test_data/NED1

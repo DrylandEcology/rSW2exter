@@ -1,6 +1,6 @@
 Package: rSW2exter
 Title: Access External Data as Input for SOILWAT2 and STEPWAT2 Simulations
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(
   person(
     "Daniel", "Schlaepfer",
@@ -27,7 +27,7 @@ Suggests:
     utils,
     testthat (>= 3.0.0),
     spelling (>= 2.1.0),
-    lintr (>= 3.1.0),
+    lintr (>= 3.1.1),
     covr
 Remotes:
     github::DrylandEcology/rSW2utils,
@@ -39,4 +39,4 @@ BugReports: https://github.com/DrylandEcology/rSW2exter/issues
 Encoding: UTF-8
 Config/testthat/edition: 3
 Language: en-US
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1

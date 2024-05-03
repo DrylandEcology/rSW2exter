@@ -11,6 +11,12 @@ create_reference_for_NRCS_SDA <- function() {
 }
 
 
+# Single quotes for T-SQL
+# `shQuote()` returns double quotes on windows OS
+sqlQuote <- function(x) {
+  paste0("'", x, "'", recycle0 = TRUE)
+}
+
 
 #' Check whether a \var{NRCS} soil horizon is organic
 #'
@@ -46,7 +52,7 @@ create_reference_for_NRCS_SDA <- function() {
 #'
 #' \dontrun{
 #' if (curl::has_internet()) {
-#'   x <- fetch_soils_from_NRCS_SDA(mukeys_unique = c(471168, 1606800))
+#'   x <- fetch_soils_from_NRCS_SDA(bind_params = c(471168, 1606800))
 #'   is_NRCS_horizon_organic(x)
 #' }
 #' }
@@ -138,7 +144,7 @@ is_NRCS_horizon_organic <- function(x) {
 #' if (curl::has_internet()) {
 #'   var_stxt3 <- c("sandtotal_r", "claytotal_r", "silttotal_r")
 #'
-#'   x <- fetch_soils_from_NRCS_SDA(mukeys_unique = c(471168, 1606800))
+#'   x <- fetch_soils_from_NRCS_SDA(bind_params = c(471168, 1606800))
 #'
 #'   calculate_soil_depth_NRCS(
 #'     x,
@@ -217,10 +223,12 @@ calculate_soil_depth_NRCS <- function(
 
   # Calculate additional restrictions
   if (restrict_by_ec_or_ph) {
+    # nolint start: scalar_in_linter.
     x[, "is_organic"] <- x[, "organic"] %in% TRUE
     x[, "is_histosol_histic"] <-
       x[, "taxorder"] %in% "Histosols" |
       grepl("histic", x[, "taxsubgrp"], ignore.case = TRUE)
+    # nolint end: scalar_in_linter.
 
     # Restrictions pH < 3.5 or EC > 16 apply only
     # if horizon is non-organic and not a histosol/histic soil
@@ -508,11 +516,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       warning("Spatial SDA query produced error: chunk = ", k)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
-    } else if (!inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
-      warning("Spatial SDA query returned non-spatial object: chunk = ", k)
-      res[[k]] <- rep(NA, length(ids_chunks[[k]]))
-
-    } else {
+    } else if (inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
       # Extract mukey for each location because
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
@@ -526,6 +530,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       res[[k]] <- as.vector(
         res_mukeys[unlist(unclass(tmp)), "mukey", drop = TRUE]
       )
+
+    } else {
+      warning("Spatial SDA query returned non-spatial object: chunk = ", k)
+      res[[k]] <- rep(NA, length(ids_chunks[[k]]))
     }
 
     if (has_progress_bar) {
@@ -545,62 +553,81 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
 
 
 
-#' Download soil data from \var{NRCS} \var{SDA} web service
+#' Download soil data from `NRCS` `SDA` web service
 #'
-#' @param mukeys_unique An integer vector with unique \var{mukey} values.
+#' @param mukeys_unique An integer vector with unique `mukey` values.
+#'   Deprecated; use `bind_params` instead.
+#' @param bind_params A vector or 2-dimensional container with parameter values
+#'   to bind to the `T-SQL` query via `injection_format`.
 #' @param sql_template A character vector.
-#'   A valid \var{T-SQL} query with a \var{WHERE} clause so that the code can
-#'   inject chunks of \code{mukeys_unique} values,
-#'   i.e., \var{"mapunit.mukey IN (\%s)"}.
-#'   If \code{NA}, then the default query is loaded, see examples.
-#' @param majcompflag A character string. \var{"subset"} keeps
-#'   the WHERE clause \var{component.majcompflag = 'Yes'} that is contained in
-#'   \code{sql_template}; \var{"ignore"} removes it from the query. Note that
-#'   the field \var{"majcompflag} exists only in the \var{SSURGO} version
-#'   of the \var{component} table, but not in the \var{STATSGO} version.
-#' @param only_soilcomp A logical value. If \code{TRUE}, then query restricts
-#'   to soil components. If \code{FALSE}, then query includes
-#'   all components including "Miscellaneous areas" and \var{"NOTCOM"}
+#'   A valid `T-SQL` query with a `"WHERE"` clause so that the code can
+#'   inject chunks of `bind_params` values via format `injection_format`.
+#'   If `NA`, then the default query is loaded, see examples.
+#' @param injection_format A character vector that identifies the location
+#'   (format specifier) in `sql_template` for parameter value injection/binding.
+#' @param majcompflag A character string. `"subset"` keeps
+#'   the `"WHERE"` clause `component.majcompflag = 'Yes'` that is contained in
+#'   `sql_template`; `"ignore"` removes it from the query. Note that
+#'   the field `"majcompflag"` exists only in the `SSURGO` version
+#'   of the `"component"` table, but not in the `STATSGO` version.
+#' @param only_soilcomp A logical value. If `TRUE`, then query restricts
+#'   to soil components. If `FALSE`, then query includes
+#'   all components including `"Miscellaneous areas"` and `"NOTCOM"`
 #'   (not complete) components.
 #' @param chunk_size An integer value. The size of chunks into which
-#'   \code{mukeys_unique} is broken up and looped over for processing.
+#'   `bind_params` is broken up and looped over for processing.
 #' @param progress_bar A logical value. Display a progress bar as the code
 #'   loops over the chunks?
 #'
-#' @return A \var{data.frame} according to the specifications of \code{sql} or
-#'   \code{NULL} if the query returns empty.
+#' @return A `data.frame` according to the specifications of `sql` or
+#'   `NULL` if the query returns empty.
 #'
-#' @section Notes: A live internet connection is required to access \var{SDA}.
+#' @section Notes: A live internet connection is required to access `SDA`.
 #'
 #' @section Notes: This is a function with minimal functionality;
-#' use \code{\link{extract_soils_NRCS_SDA}} for a user-friendly interface.
+#' use [extract_soils_NRCS_SDA()] for a user-friendly interface.
 #'
-#' @seealso \code{\link[soilDB]{SDA_query}}
+#' @seealso [soilDB::SDA_query()]
 #'
 #' @examples
 #' \dontrun{
 #' if (curl::has_internet()) {
-#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616)
+#'   # Query soils of dominant component of soil map unit
+#'   fetch_soils_from_NRCS_SDA(bind_params = 67616)
 #'
 #'   # As of 2022-March-15, mukey 2479921 contained one "NOTCOM" component
-#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921)
-#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 2479921, only_soilcomp = FALSE)
+#'   fetch_soils_from_NRCS_SDA(bind_params = 2479921)
+#'   fetch_soils_from_NRCS_SDA(bind_params = 2479921, only_soilcomp = FALSE)
 #'
 #'   sql <- readLines(
 #'     system.file("NRCS", "nrcs_sql_template.sql", package = "rSW2exter")
 #'   )
 #'
-#'   fetch_soils_from_NRCS_SDA(mukeys_unique = 67616, sql_template = sql)
+#'   fetch_soils_from_NRCS_SDA(bind_params = 67616, sql_template = sql)
 #'
 #'   # This will return NULL because -1 is not an existing mukey value
-#'   fetch_soils_from_NRCS_SDA(mukeys_unique = -1, sql_template = sql)
+#'   fetch_soils_from_NRCS_SDA(bind_params = -1, sql_template = sql)
+#'
+#'   # Query soils of a specific component of a soil map unit
+#'   sql2 <- readLines(
+#'     system.file("NRCS", "nrcs_sql_template2.sql", package = "rSW2exter")
+#'   )
+#'
+#'   fetch_soils_from_NRCS_SDA(
+#'     bind_params = data.frame(mukey = 398856, compname = "Waupaca"),
+#'     sql_template = sql2,
+#'     injection_format = "(VALUES %s) AS t (mm, cn)"
+#'   )
 #' }
 #' }
 #'
+#' @md
 #' @export
 fetch_soils_from_NRCS_SDA <- function(
   mukeys_unique,
+  bind_params = mukeys_unique,
   sql_template = NA,
+  injection_format = "mukey IN (%s)",
   majcompflag = c("subset", "ignore"),
   only_soilcomp = TRUE,
   chunk_size = 1000L,
@@ -611,11 +638,22 @@ fetch_soils_from_NRCS_SDA <- function(
 
   majcompflag <- match.arg(majcompflag)
 
-  mukeys_unique <- as.integer(mukeys_unique)
-  stopifnot(!anyDuplicated(mukeys_unique))
+  if (!missing(mukeys_unique)) {
+    .Deprecated(
+      msg = "Argument 'mukeys_unique' is deprecated; please use 'bind_params'."
+    )
+  }
+
+  stopifnot(missing(mukeys_unique) || identical(bind_params, mukeys_unique))
+  if (length(dim(bind_params)) != 2L) {
+    bind_params <- data.frame(bind_params)
+  }
+  stopifnot(!anyDuplicated(bind_params))
+
+  hasMultiParams <- ncol(bind_params) > 1L
 
   ids_chunks <- rSW2utils::make_chunks(
-    nx = length(mukeys_unique),
+    nx = nrow(bind_params),
     chunk_size = chunk_size
   )
 
@@ -677,18 +715,33 @@ fetch_soils_from_NRCS_SDA <- function(
   }
 
   # Identify lines where mukey values are injected
-  tmp <- regexpr("mukey IN (%s)", sql_base, fixed = TRUE)
+  tmp <- regexpr(injection_format, sql_base, fixed = TRUE)
   iline <- which(tmp > 0)[[1L]]
+
+  stopifnot(length(iline) == 1L)
 
 
   for (k in seq_along(ids_chunks)) {
     # Prepare SQL query for SDA
     sql <- sql_base
 
-    # Insert requested mukey values
+    # Insert requested parameter values
+    tmp <- bind_params[ids_chunks[[k]], , drop = !hasMultiParams]
+
     sql[iline] <- sprintf(
       fmt = sql[iline],
-      paste(shQuote(mukeys_unique[ids_chunks[[k]]]), collapse = ",")
+
+      if (hasMultiParams) {
+        paste0(
+          "(",
+          apply(tmp, 1, function(x) toString(sqlQuote(x))),
+          ")",
+          collapse = ","
+        )
+
+      } else {
+        paste(sqlQuote(tmp), collapse = ",")
+      }
     )
 
     # Send query to SDA
@@ -697,7 +750,7 @@ fetch_soils_from_NRCS_SDA <- function(
     tmp_sql <- paste(sql, collapse = " ")
     res[[k]] <- suppressMessages(soilDB::SDA_query(tmp_sql))
 
-    if (length(res) > 0 && inherits(res[[k]], "try-error")) {
+    if (length(res) >= k && inherits(res[[k]], "try-error")) {
       message(
         "Error produced during call to `soilDB::SDA_query`; ",
         "result will be set to NULL; query leading to error was: ",
@@ -935,22 +988,23 @@ extract_soils_NRCS_SDA <- function(
     unique(locs_keys[, "mukey"])
   )
 
+
+  # nolint start: object_usage_linter, unreachable_code_linter.
   if (FALSE) {
     # e.g., unique soil units defined by mukey-component combinations
-    # nolint start: object_usage_linter.
     tmp_tag <- apply(
       locs_keys[, c("mukey", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
       FUN = function(x) paste0(as.integer(x[[1L]]), "_", x[[2L]])
     )
     locs_keys[, "unit_id"] <- match(tmp_tag, unique(tmp_tag))
-    # nolint end: object_usage_linter.
   }
+  # nolint end
 
 
   #--- Download soil data from NRCS SDA web service (for unique "mukeys")
   res <- fetch_soils_from_NRCS_SDA(
-    mukeys_unique = unique(locs_keys[["mukey"]]),
+    bind_params = as.integer(unique(locs_keys[["mukey"]])),
     sql_template = sql_template,
     majcompflag = if (only_majcomp) {
       switch(db, SSURGO = "subset", STATSGO = "ignore")
@@ -966,9 +1020,9 @@ extract_soils_NRCS_SDA <- function(
   ids <- match(res[, "MUKEY"], locs_keys[, "mukey"])
   res[, "unit_id"] <- locs_keys[ids, "unit_id"]
 
+  # nolint start: object_usage_linter, unreachable_code_linter.
   if (FALSE) {
     # e.g., unique soil units defined by mukey-compname combinations
-    # nolint start: object_usage_linter.
     tmp_tag2 <- apply(
       res[, c("MUKEY", "compname", "comppct_r", "localphase")],
       MARGIN = 1,
@@ -976,8 +1030,8 @@ extract_soils_NRCS_SDA <- function(
     )
     ids <- match(tmp_tag2, tmp_tag)
     res[, "unit_id"] <- locs_keys[ids, "unit_id"]
-    # nolint end: object_usage_linter.
   }
+  # nolint end
 
 
   # Copy extracted soil information to table `locs_keys` (based on unit_id)
@@ -1083,7 +1137,9 @@ extract_soils_NRCS_SDA <- function(
 
 
   #--- Remove organic horizons
+  # nolint start: scalar_in_linter.
   res[, "organic"] <- is_NRCS_horizon_organic(res) %in% TRUE
+  # nolint end: scalar_in_linter.
 
   remove_organic_horizons <- match.arg(remove_organic_horizons)
 
@@ -1093,7 +1149,8 @@ extract_soils_NRCS_SDA <- function(
     if (remove_organic_horizons == "all") {
       is_remove <- is_organic
 
-      if (verbose && (n_remove <- sum(is_remove)) > 0) {
+      n_remove <- sum(is_remove)
+      if (verbose && n_remove > 0) {
         message("Removed organic horizons: n = ", n_remove)
       }
 
@@ -1122,7 +1179,8 @@ extract_soils_NRCS_SDA <- function(
       }
 
 
-      if (verbose && (n_remove <- sum(is_remove)) > 0) {
+      n_remove <- sum(is_remove)
+      if (verbose && n_remove > 0) {
         n_oburied <- sum(is_organic & !is_remove)
 
         message(

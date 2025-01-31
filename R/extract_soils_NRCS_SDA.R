@@ -1307,7 +1307,7 @@ extract_soils_NRCS_SDA <- function(
   #--- Convert units & rounding
   # Convert % to fraction
   var_pct_to_fraction <- intersect(
-    c("fragvol_r", var_stxt3),
+    c("fragvol_r", var_stxt3, "om_r"),
     colnames(res)
   )
   res[, var_pct_to_fraction] <- res[, var_pct_to_fraction] / 100

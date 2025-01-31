@@ -9,3 +9,11 @@ variables_SOLUS100()
 \description{
 List of variables available from \code{SOLUS100}
 }
+\section{Organic matter}{
+
+We provide \code{SOLUS100} soil organic carbon \code{soc} as mass fraction \verb{[0-1]}.
+The relationship with \code{SSURGO} organic matter is \code{soc = 0.58 * om} where
+\code{om} is "decomposed plant and animal residue expressed as a" mass fraction
+"of the less than 2 mm soil material".
+}
+

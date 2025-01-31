@@ -9,6 +9,13 @@ create_reference_for_SOLUS100 <- function() {
 }
 
 #' List of variables available from `SOLUS100`
+#'
+#' @section Organic matter:
+#' We provide `SOLUS100` soil organic carbon `soc` as mass fraction `[0-1]`.
+#' The relationship with `SSURGO` organic matter is `soc = 0.58 * om` where
+#' `om` is "decomposed plant and animal residue expressed as a" mass fraction
+#' "of the less than 2 mm soil material".
+#'
 #' @md
 #' @export
 variables_SOLUS100 <- function() {
@@ -37,12 +44,12 @@ variables_SOLUS100 <- function() {
       100, # dbovendry
       10, 10, # ec, ecec
       100, # fragvol [% -> fraction]
-      100, # gypsum [% -> fraction]
+      10 * 100, # gypsum [% -> fraction]
       100, # ph1to1h2o
       rep(100, 6L), # sand* [% -> fraction]
       1, # sar
       100, # silttotal [% -> fraction]
-      100 # soc [% -> fraction]
+      1000 * 100 # soc [% -> fraction]
     ),
     stringsAsFactors = FALSE
   )

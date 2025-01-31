@@ -1,3 +1,6 @@
+# rSW2exter v0.3.1-9000
+
+
 # rSW2exter v0.3.0
 * Functionality to download, query, and extract soils data from `SOLUS100`
     * `depth_profile_SOLUS100()`, `variables_SOLUS100()`, and

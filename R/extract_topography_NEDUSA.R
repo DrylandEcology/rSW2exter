@@ -190,7 +190,10 @@ extract_topography_NEDUSA <- function(
       )
 
     } else if (south_aspect != 0) {
-      warning("`south_aspect` with value ", south_aspect, " not implemented.")
+      warning(
+        "`south_aspect` with value ", south_aspect, " not implemented.",
+        call. = FALSE
+      )
     }
 
     vals_topo[is_noaspect, "aspect"] <- NA

@@ -4,11 +4,11 @@ SDA_spatialQuery2 <- function(geom, what='mukey', db = c("SSURGO", "STATSGO"),
 
   # check for required packages
   if(!requireNamespace('rgeos', quietly = TRUE))
-    stop('please install the `rgeos` package', call.=FALSE)
+    stop('please install the `rgeos` package', call. = FALSE)
 
   # sanity checks
   if(! what %in% c('mukey', 'geom')) {
-    stop("query type must be either 'mukey' or 'geom'",call. = FALSE)
+    stop("query type must be either 'mukey' or 'geom'", call. = FALSE)
   }
 
   db <- match.arg(db)

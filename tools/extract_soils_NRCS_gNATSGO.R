@@ -316,7 +316,8 @@ extract_soils_NRCS_gNATSGO <- function(
           " for mukey x cokey combination = ",
           gsub("_x_", " x ", input_keys_ID[hasnt_cokeys]),
           collapse = "; "
-        )
+        ),
+        call. = FALSE
       )
     }
 
@@ -501,7 +502,7 @@ query_mukeys_spatially_NRCS_gNATSGO <- function(locations,
   is_sf <- inherits(locations, "sf")
 
   if (!(is_sp || is_sf)) {
-    warning("Assume that coordinates of 'locations' are WGS84.")
+    warning("Assume that coordinates of 'locations' are WGS84.", call. = FALSE)
 
     locations <- sp::SpatialPoints(
       coords = locations,

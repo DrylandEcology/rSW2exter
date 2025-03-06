@@ -9,6 +9,13 @@ create_reference_for_SOLUS100 <- function() {
 }
 
 #' List of variables available from `SOLUS100`
+#'
+#' @section Organic matter:
+#' We provide `SOLUS100` soil organic carbon `soc` as mass fraction `[0-1]`.
+#' The relationship with `SSURGO` organic matter is `soc = 0.58 * om` where
+#' `om` is "decomposed plant and animal residue expressed as a" mass fraction
+#' "of the less than 2 mm soil material".
+#'
 #' @md
 #' @export
 variables_SOLUS100 <- function() {
@@ -37,12 +44,12 @@ variables_SOLUS100 <- function() {
       100, # dbovendry
       10, 10, # ec, ecec
       100, # fragvol [% -> fraction]
-      100, # gypsum [% -> fraction]
+      10 * 100, # gypsum [% -> fraction]
       100, # ph1to1h2o
       rep(100, 6L), # sand* [% -> fraction]
       1, # sar
       100, # silttotal [% -> fraction]
-      100 # soc [% -> fraction]
+      1000 * 100 # soc [% -> fraction]
     ),
     stringsAsFactors = FALSE
   )
@@ -267,25 +274,30 @@ fetch_soils_from_SOLUS100 <- function(
   for (iv in seq_along(vars)) {
     ftmp <- file.path(path, filenames_SOLUS100(vars[iv], depths, stat))
 
-    if (all(file.exists(ftmp))) {
-      list_args <- list(
-        x = terra::rast(ftmp),
-        y = x,
-        ID = FALSE,
-        raw = TRUE
+    has <- file.exists(ftmp)
+
+    if (!all(has)) {
+      stop(
+        "SOLUS100 data ",
+        toString(shQuote(basename(ftmp[!has]))), " not found.",
+        call. = FALSE
       )
-
-      if (!is.null(fun)) {
-        list_args <- c(list_args, list(fun = fun, na.rm = na.rm))
-      }
-
-      tmp <- do.call(terra::extract, args = list_args)
-
-      res[, iv, seq_along(ftmp)] <- data.matrix(tmp)
-
-    } else {
-      stop("SOLUS100 data ", toString(shQuote(basename(ftmp))), " not found.")
     }
+
+    list_args <- list(
+      x = terra::rast(ftmp),
+      y = x,
+      ID = FALSE,
+      raw = TRUE
+    )
+
+    if (!is.null(fun)) {
+      list_args <- c(list_args, list(fun = fun, na.rm = na.rm))
+    }
+
+    tmp <- do.call(terra::extract, args = list_args)
+
+    res[, iv, seq_along(ftmp)] <- data.matrix(tmp)
   }
 
   res
@@ -443,7 +455,8 @@ extract_soils_SOLUS100 <- function(
     warning(
       "Ignoring requested variables ",
       toString(shQuote(setdiff(vars, vars_solus100[["name"]]))),
-      " that are not provided by SOLUS100."
+      " that are not provided by SOLUS100.",
+      call. = FALSE
     )
   }
   vars <- tmp
@@ -452,7 +465,8 @@ extract_soils_SOLUS100 <- function(
   requested_layer_depths <- sort(as.integer(requested_layer_depths))
   if (any(requested_layer_depths <= 0L)) {
     warning(
-      "Ignoring requested soil layers shallower than minimum depth of 1 cm."
+      "Ignoring requested soil layers shallower than minimum depth of 1 cm.",
+      call. = FALSE
     )
     ids <- requested_layer_depths > 0L
     requested_layer_depths <- requested_layer_depths[ids]
@@ -460,13 +474,14 @@ extract_soils_SOLUS100 <- function(
   if (any(requested_layer_depths > max_depth)) {
     warning(
       "Ignoring requested soil layers deeper than maximum depth of ",
-      max_depth, " cm; assigning maximum depth as boundary of deepest layer."
+      max_depth, " cm; assigning maximum depth as boundary of deepest layer.",
+      call. = FALSE
     )
     ids <- requested_layer_depths <= max_depth
     requested_layer_depths <- c(requested_layer_depths[ids], max_depth)
   }
   if (has_rld && length(requested_layer_depths) == 0L) {
-    stop("Failed to process 'requested_layer_depths'.")
+    stop("Failed to process 'requested_layer_depths'.", call. = FALSE)
   }
 
   depths <- sort(as.integer(depths))
@@ -475,7 +490,8 @@ extract_soils_SOLUS100 <- function(
     warning(
       "Ignoring requested depths ",
       toString(shQuote(setdiff(depths, depth_profile_SOLUS100()))),
-      " that are not provided by SOLUS100."
+      " that are not provided by SOLUS100.",
+      call. = FALSE
     )
   }
   depths <- tmp
@@ -535,7 +551,8 @@ extract_soils_SOLUS100 <- function(
       warning(
         "Cannot apply `fix_with_buffer` for ",
         toString(shQuote(tmp[!ok])),
-        " because of incomplete criteria."
+        " because of incomplete criteria.",
+        call. = FALSE
       )
     }
 
@@ -550,7 +567,8 @@ extract_soils_SOLUS100 <- function(
       warning(
         "Cannot apply `fix_with_buffer` for ",
         toString(shQuote(tmp[!ok])),
-        " because of missing summarizing function `fun`."
+        " because of missing summarizing function `fun`.",
+        call. = FALSE
       )
     }
 
@@ -563,7 +581,8 @@ extract_soils_SOLUS100 <- function(
         warning(
           "Cannot apply `fix_with_buffer` for `texture` because of ",
           "missing texture variables: ",
-          toString(shQuote(var_stxt3[hasnot_texture]))
+          toString(shQuote(var_stxt3[hasnot_texture])),
+          call. = FALSE
         )
 
       } else {

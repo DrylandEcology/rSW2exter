@@ -65,7 +65,10 @@ is_NRCS_horizon_organic <- function(x) {
 
   for (var in vars) {
     if (!(var %in% cns)) {
-      stop(shQuote(var), " is a required column name, but cannot be found.")
+      stop(
+        shQuote(var), " is a required column name, but cannot be found.",
+        call. = FALSE
+      )
     }
   }
 
@@ -193,7 +196,10 @@ calculate_soil_depth_NRCS <- function(
 
   for (var in vars) {
     if (!(var %in% cns)) {
-      stop(shQuote(var), " is a required column name, but cannot be found.")
+      stop(
+        shQuote(var), " is a required column name, but cannot be found.",
+        call. = FALSE
+      )
     }
   }
 
@@ -495,7 +501,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     if (has_progress_bar) {
       pb <- utils::txtProgressBar(max = N_chunks, style = 3)
     } else {
-      warning("Progress bar requested but package 'utils' is not available.")
+      warning(
+        "Progress bar requested but package 'utils' is not available.",
+        call. = FALSE
+      )
     }
 
   } else {
@@ -513,7 +522,7 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
     )
 
     if (inherits(res_mukeys, "try-error")) {
-      warning("Spatial SDA query produced error: chunk = ", k)
+      warning("Spatial SDA query produced error: chunk = ", k, call. = FALSE)
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
 
     } else if (inherits(res_mukeys, c("SpatialPolygons", "sf"))) {
@@ -524,7 +533,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       ltmp <- lengths(tmp)
 
       if (any(ltmp == 0L, ltmp > 1L)) {
-        stop("Spatial SDA query return no or more than one result.")
+        stop(
+          "Spatial SDA query return no or more than one result.",
+          call. = FALSE
+        )
       }
 
       res[[k]] <- as.vector(
@@ -532,7 +544,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       )
 
     } else {
-      warning("Spatial SDA query returned non-spatial object: chunk = ", k)
+      warning(
+        "Spatial SDA query returned non-spatial object: chunk = ", k,
+        call. = FALSE
+      )
       res[[k]] <- rep(NA, length(ids_chunks[[k]]))
     }
 
@@ -700,14 +715,17 @@ fetch_soils_from_NRCS_SDA <- function(
   progress_bar <- progress_bar && N_chunks > 2
 
   if (progress_bar) {
-    print("Fetch soil information from NRCS SDA:")
+    cat("Fetch soil information from NRCS SDA:", fill = TRUE)
 
     has_progress_bar <- requireNamespace("utils")
 
     if (has_progress_bar) {
       pb <- utils::txtProgressBar(max = N_chunks, style = 3)
     } else {
-      warning("Progress bar requested but package 'utils' is not available.")
+      warning(
+        "Progress bar requested but package 'utils' is not available.",
+        call. = FALSE
+      )
     }
 
   } else {
@@ -756,7 +774,7 @@ fetch_soils_from_NRCS_SDA <- function(
         "result will be set to NULL; query leading to error was: ",
         tmp_sql
       )
-      warning(res[[k]])
+      warning(res[[k]], call. = FALSE)
       res[[k]] <- NULL
     }
 
@@ -950,7 +968,8 @@ extract_soils_NRCS_SDA <- function(
   if (missing(x) && method == "SSURGO_then_STATSGO") {
     warning(
       "'method' == \"SSURGO_then_STATSGO\" has no effect ",
-      "if locations are missing"
+      "if locations are missing",
+      call. = FALSE
     )
   }
 
@@ -1307,7 +1326,7 @@ extract_soils_NRCS_SDA <- function(
   #--- Convert units & rounding
   # Convert % to fraction
   var_pct_to_fraction <- intersect(
-    c("fragvol_r", var_stxt3),
+    c("fragvol_r", var_stxt3, "om_r"),
     colnames(res)
   )
   res[, var_pct_to_fraction] <- res[, var_pct_to_fraction] / 100

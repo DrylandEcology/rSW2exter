@@ -1,3 +1,12 @@
+# rSW2exter v0.3.1
+* Functions that extract soil properties now return organic content as
+  mass fraction
+    * `extract_soils_NRCS_SDA()` now returns `"om_r"` as fraction `[0-1]`
+       instead of percentage `0-100%`
+    * `extract_soils_SOLUS100()` now returns `"soc"` (soil organic carbon)
+       as fraction `[0-1]` instead of `g/kg 0-1000`
+* `extract_soils_SOLUS100()` now returns correct units for `"gypsum"`.
+
 # rSW2exter v0.3.0
 * Functionality to download, query, and extract soils data from `SOLUS100`
     * `depth_profile_SOLUS100()`, `variables_SOLUS100()`, and

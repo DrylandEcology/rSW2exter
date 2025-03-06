@@ -63,14 +63,12 @@ test_that("Extract from NED USA", {
   )
 
   ### Get just elevation values
-  #nolint start: extraction_operator_linter.
   vals_elev <- extract_topography_NEDUSA(
     locations,
     path = path_ned,
     file_datasets = fnames_ned["elev"],
     method = "simple"
   )
-  #nolint end: extraction_operator_linter.
 
 
   #--- Expectations
@@ -94,6 +92,6 @@ test_that("Extract from NED USA", {
   expect_identical(colnames(vals_elev), "elev")
   expect_type(as.matrix(vals_elev), "double")
 
-  expect_equal(vals_elev, vals_topo["elev"]) #nolint: extraction_operator_linter
+  expect_identical(vals_elev, vals_topo["elev"])
 
 })

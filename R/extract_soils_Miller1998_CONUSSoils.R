@@ -77,14 +77,17 @@ prepare_script_for_Miller1998_CONUSSoil <- function(
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
 
   # TODO: implement `prepare_script_for_Miller1998_CONUSSoil()`
-  warning("`prepare_script_for_Miller1998_CONUSSoil()` is not yet implemented.")
+  warning(
+    "`prepare_script_for_Miller1998_CONUSSoil()` is not yet implemented.",
+    call. = FALSE
+  )
 
-  file <- file.path(
+  fname <- file.path(
     path,
     paste0("wget_CONUSSoil_", format(as.POSIXlt(Sys.Date()), "%Y%m%d"), ".sh")
   )
 
-  invisible(file)
+  invisible(fname)
 }
 
 
@@ -145,7 +148,8 @@ create_conditioned_Miller1998_CONUSSoil <- function(
         if (inherits(tmp, "try-error")) {
           warning(
             "Was not able to calculate and create conditioned CONUSSoil: ",
-            shQuote(basename(ftmp_cond))
+            shQuote(basename(ftmp_cond)),
+            call. = FALSE
           )
         } else {
           res[k] <- TRUE
@@ -155,7 +159,8 @@ create_conditioned_Miller1998_CONUSSoil <- function(
     } else {
       warning(
         "CONUSSoil file not able to locate: ",
-        shQuote(basename(ftmp_orig))
+        shQuote(basename(ftmp_orig)),
+        call. = FALSE
       )
     }
   }
@@ -287,40 +292,40 @@ fetch_soils_from_Miller1998_CONUSSoil <- function(
     )
 
 
-    if (file.exists(ftmp)) {
-      if (verbose) {
-        message(Sys.time(), " extracting ", shQuote(vars[iv]))
-      }
-
-      tmp <- raster::extract(
-        x = raster::brick(ftmp),
-        y = locations,
-        method = "simple"
-      )
-
-      # nolint start: commented_code_linter
-      # tmp <- do.call(
-      #   "extract_rSFSW2",
-      #   args = list(
-      #     x = raster::brick(ftmp),
-      #     y = locations, # rSW2st::as_points(locations, to_class = "sp"),
-      #     type = sim_space[["scorp"]],
-      #     method = "simple"
-      #   )
-      # )
-      # nolint end
-
-      ntmp <- ncol(tmp)
-      if (ntmp == 1 || ntmp == length(depths)) {
-        res[, iv, ] <- tmp
-      } else {
-        res[, iv, seq_len(ncol(tmp))] <- tmp
-      }
-
-    } else {
+    if (!file.exists(ftmp)) {
       stop(
-        "Miller1998 (CONUSSoil) data ", shQuote(basename(ftmp)), " not found."
+        "Miller1998 (CONUSSoil) data ", shQuote(basename(ftmp)), " not found.",
+        call. = FALSE
       )
+    }
+
+    if (verbose) {
+      message(Sys.time(), " extracting ", shQuote(vars[iv]))
+    }
+
+    tmp <- raster::extract(
+      x = raster::brick(ftmp),
+      y = locations,
+      method = "simple"
+    )
+
+    # nolint start: commented_code_linter
+    # tmp <- do.call(
+    #   "extract_rSFSW2",
+    #   args = list(
+    #     x = raster::brick(ftmp),
+    #     y = locations, # rSW2st::as_points(locations, to_class = "sp"),
+    #     type = sim_space[["scorp"]],
+    #     method = "simple"
+    #   )
+    # )
+    # nolint end
+
+    ntmp <- ncol(tmp)
+    if (ntmp == 1 || ntmp == length(depths)) {
+      res[, iv, ] <- tmp
+    } else {
+      res[, iv, seq_len(ncol(tmp))] <- tmp
     }
   }
 
@@ -523,7 +528,8 @@ extract_soils_Miller1998_CONUSSoil <- function(
   } else {
     warning(
       "Soil depth was not adjusted ",
-      "because soil texture variables were not extracted."
+      "because soil texture variables were not extracted.",
+      call. = FALSE
     )
 
     #--- Set (fixed) soil depth of profile in wide-format for output

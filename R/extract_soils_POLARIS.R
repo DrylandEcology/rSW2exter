@@ -73,7 +73,7 @@ prepare_script_for_POLARIS <- function(
   )
 
   # create requests and write script out to disk
-  file <- file.path(
+  fname <- file.path(
     path,
     paste0("wget_POLARIS_", format(as.POSIXlt(Sys.Date()), "%Y%m%d"), ".sh")
   )
@@ -89,11 +89,11 @@ prepare_script_for_POLARIS <- function(
         sep = "/"
       )
     ),
-    con = file
+    con = fname
   )
   # nolint end: paste_linter.
 
-  invisible(file)
+  invisible(fname)
 }
 
 
@@ -259,27 +259,29 @@ fetch_soils_from_POLARIS <- function(
 
       ftmp <- filepath_vrt_POLARIS(path, vars[iv], stat, depths[id])
 
-      if (file.exists(ftmp)) {
-        if (verbose) {
-          message(
-            Sys.time(),
-            " extracting ", vars[iv], " at ",
-            sub("_", "-", depths[id], fixed = TRUE), " cm"
-          )
-        }
-
-        res[, iv, id] <- raster::extract(
-          x = raster::raster(ftmp),
-          y = locations,
-          method = "simple",
-          buffer = buffer_m,
-          fun = fun,
-          na.rm = na.rm
+      if (!file.exists(ftmp)) {
+        stop(
+          "POLARIS data ", shQuote(basename(ftmp)), " not found.",
+          call. = FALSE
         )
-
-      } else {
-        stop("POLARIS data ", shQuote(basename(ftmp)), " not found.")
       }
+
+      if (verbose) {
+        message(
+          Sys.time(),
+          " extracting ", vars[iv], " at ",
+          sub("_", "-", depths[id], fixed = TRUE), " cm"
+        )
+      }
+
+      res[, iv, id] <- raster::extract(
+        x = raster::raster(ftmp),
+        y = locations,
+        method = "simple",
+        buffer = buffer_m,
+        fun = fun,
+        na.rm = na.rm
+      )
     }
   }
 
@@ -457,7 +459,8 @@ extract_soils_POLARIS <- function(
       warning(
         "Cannot apply `fix_with_buffer` for ",
         toString(shQuote(tmp[!ok])),
-        " because of incomplete criteria."
+        " because of incomplete criteria.",
+        call. = FALSE
       )
     }
 
@@ -472,7 +475,8 @@ extract_soils_POLARIS <- function(
       warning(
         "Cannot apply `fix_with_buffer` for ",
         toString(shQuote(tmp[!ok])),
-        " because of missing summarizing function `fun`."
+        " because of missing summarizing function `fun`.",
+        call. = FALSE
       )
     }
 
@@ -485,7 +489,8 @@ extract_soils_POLARIS <- function(
         warning(
           "Cannot apply `fix_with_buffer` for `texture` because of ",
           "missing texture variables: ",
-          toString(shQuote(var_stxt3[hasnot_texture]))
+          toString(shQuote(var_stxt3[hasnot_texture])),
+          call. = FALSE
         )
 
       } else {

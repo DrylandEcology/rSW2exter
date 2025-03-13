@@ -1,5 +1,10 @@
 # rSW2exter v0.3.2-9000
 * `"SOLUS100"` renamed layer to `"resdept_all_cm"` (previously, `"resdept_cm"`).
+* New `fixHorizonDepths()` to fix several types of inconsistencies in
+  horizon depths.
+* New functionality to download, query, and extract soils data from `KSSL`
+    * `variables_KSSL()` provides meta data.
+    * `extract_soil_KSSL()` extracts and formats soils data for `"SOILWAT2"`.
 
 # rSW2exter v0.3.1
 * Functions that extract soil properties now return organic content as

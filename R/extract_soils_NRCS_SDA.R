@@ -119,8 +119,10 @@ is_NRCS_horizon_organic <- function(x) {
 #' @param var_horizon A character string. The column name of \code{x} which
 #'   contains the horizon/layer numbers where the shallowest horizon/layer
 #'   is number one.
+#' @param var_horizon_top_depth A character string. The column name of
+#'   \code{x} that contains the upper/top depth limit of horizons/layers.
 #' @param var_horizon_lower_depth A character string. The column name of
-#'   \code{x} that contains the lower depth limit of horizons/layers.
+#'   \code{x} that contains the lower/bottom depth limit of horizons/layers.
 #' @param var_restrictions A vector of character strings. The column names of
 #'   \code{x} that contain depth restrictions, e.g., bedrock.
 #' @param var_soiltexture A vector of character strings. The column names of
@@ -171,6 +173,7 @@ calculate_soil_depth_NRCS <- function(
   restrict_by_ec_or_ph = TRUE,
   var_site_id = "COKEY",
   var_horizon = "Horizon_No",
+  var_horizon_top_depth = "hzdept_r",
   var_horizon_lower_depth = "hzdepb_r",
   var_restrictions =
     c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth"),
@@ -187,7 +190,8 @@ calculate_soil_depth_NRCS <- function(
   if (restrict_by_ec_or_ph) {
     vars <- c(
       vars,
-      "hzdept_r", "taxorder", "taxsubgrp", "organic", "ec_r", "ph1to1h2o_r"
+      var_horizon_top_depth,
+      "taxorder", "taxsubgrp", "organic", "ec_r", "ph1to1h2o_r"
     )
   }
 
@@ -204,11 +208,11 @@ calculate_soil_depth_NRCS <- function(
   }
 
   if (missing(target_site_ids)) {
-    target_site_ids <- x[, var_site_id]
+    target_site_ids <- x[, var_site_id, drop = TRUE]
   }
 
   # Check that sites and horizons are unique combinations
-  stopifnot(anyDuplicated(x[, c(var_site_id, var_horizon)]) == 0)
+  stopifnot(anyDuplicated(x[, c(var_site_id, var_horizon), drop = FALSE]) == 0L)
 
 
   # Determine number of soil horizons with complete/partial soil texture values
@@ -219,12 +223,14 @@ calculate_soil_depth_NRCS <- function(
       FUN = function(x) sum(!is.na(x))
     ),
     by = list(id = x[, var_site_id]),
-    FUN = function(x) c(complete = sum(x == 3), partial = sum(x > 0))
+    FUN = function(x) c(complete = sum(x == 3L), partial = sum(x > 0L))
   )
 
   ids <- match(target_site_ids, tmp[["id"]], nomatch = NA)
   target_complete_soiltexture <- tmp[["x"]][ids, "complete"]
+  target_complete_soiltexture[is.na(target_complete_soiltexture)] <- 0
   target_partial_soiltexture <- tmp[["x"]][ids, "partial"]
+  target_partial_soiltexture[is.na(target_partial_soiltexture)] <- 0
 
 
   # Calculate additional restrictions
@@ -254,12 +260,12 @@ calculate_soil_depth_NRCS <- function(
 
         c(
           ec_restriction_depth = if (length(ids_ec_restricted) > 0) {
-            xc[ids_ec_restricted[[1L]], "hzdept_r"]
+            xc[ids_ec_restricted[[1L]], var_horizon_top_depth]
           } else {
             NA
           },
           ph_restriction_depth = if (length(ids_ph_restricted) > 0) {
-            xc[ids_ph_restricted[[1L]], "hzdept_r"]
+            xc[ids_ph_restricted[[1L]], var_horizon_top_depth]
           } else {
             NA
           }
@@ -286,9 +292,9 @@ calculate_soil_depth_NRCS <- function(
   )
 
   ids <- match(target_site_ids, rownames(tmp_depths), nomatch = NA)
-  locs_table_depths <- tmp_depths[ids, , drop = FALSE]
-  colnames(locs_table_depths) <- paste0("depth_L", colnames(locs_table_depths))
-  rownames(locs_table_depths) <- target_site_ids
+  table_depths <- tmp_depths[ids, , drop = FALSE]
+  colnames(table_depths) <- paste0("depth_L", colnames(table_depths))
+  rownames(table_depths) <- target_site_ids
 
 
   # Determine soil depth as depth of shallowest restriction
@@ -298,11 +304,8 @@ calculate_soil_depth_NRCS <- function(
     tmp <- cbind(tmp, restriction2_depth)
   }
 
-  soil_depth_cm <- apply(
-    X = tmp,
-    MARGIN = 1,
-    FUN = min,
-    na.rm = TRUE
+  soil_depth_cm <- suppressWarnings(
+    apply(X = tmp, MARGIN = 1L, FUN = min, na.rm = TRUE)
   )
 
   ids <- match(target_site_ids, x[, var_site_id], nomatch = NA)
@@ -310,18 +313,15 @@ calculate_soil_depth_NRCS <- function(
 
 
   # Case:
-  #   * soil depth is missing and
-  #   * no complete soil texture available
+  #   * soil depth is missing
   # ==> adjust soil depth to 0
-  ids <-
-    !is.finite(soil_depth_cm) &
-    target_complete_soiltexture == 0
-  soil_depth_cm[ids] <- 0
+  soil_depth_cm[!is.finite(soil_depth_cm)] <- 0
+  table_depths[!is.finite(table_depths)] <- NA
 
   # Adjust soil depth and/or layers where needed
   locs_table_depths <- cbind(
     SoilDepth_cm = soil_depth_cm,
-    depth_L = locs_table_depths
+    depth_L = table_depths
   )
 
 
@@ -329,20 +329,21 @@ calculate_soil_depth_NRCS <- function(
   #   * soil_depth disagrees with horizon_depth
   #   * soil_depth > 0 and N_horizons_tmp > 0
   # ==> adjust depth_Lx to soil_depth
+  ids0 <- which(locs_table_depths[, "SoilDepth_cm"] > 0)
   L_at_soildepth <- apply(
-    X = locs_table_depths,
+    X = locs_table_depths[ids0, , drop = FALSE],
     MARGIN = 1,
     FUN = function(x) {
       findInterval(x[[1L]], c(0, na.exclude(x[-1])), left.open = TRUE)
     }
   )
   ids <- which(!apply(
-    X = locs_table_depths,
+    X = locs_table_depths[ids0, , drop = FALSE],
     MARGIN = 1,
     FUN = function(x) x[[1L]] == 0 || all(is.na(x[-1])) || x[[1L]] %in% x[-1]
   ))
-  locs_table_depths[cbind(ids, 1 + L_at_soildepth[ids])] <-
-    locs_table_depths[ids, "SoilDepth_cm"]
+  locs_table_depths[ids0, ][cbind(ids, 1 + L_at_soildepth[ids])] <-
+    locs_table_depths[ids0[ids], "SoilDepth_cm"]
 
   # Case:
   #   * soil_depth > 0 and horizon_depth L1 in (0, NA) and
@@ -415,6 +416,8 @@ calculate_soil_depth_NRCS <- function(
   ids <- locs_table_depths[, "SoilDepth_cm"] < locs_table_depths[, -1]
   locs_table_depths[, -1][ids] <- NA
 
+  ids <- which(is.na(locs_table_depths[, "SoilDepth_cm"]))
+  locs_table_depths[ids, -1] <- NA
 
   # Put together for output
   cbind(

@@ -1,4 +1,5 @@
 # rSW2exter v0.3.2-9000
+* `"SOLUS100"` renamed layer to `"resdept_all_cm"` (previously, `"resdept_cm"`).
 
 # rSW2exter v0.3.1
 * Functions that extract soil properties now return organic content as

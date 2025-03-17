@@ -15,6 +15,7 @@ create_reference_for_KSSL <- function() {
 #' @md
 #' @export
 variables_KSSL <- function() {
+  # nolint start: commented_code_linter.
   data.frame(
     type = c("depth", "depth", rep("property", 6L)),
     name = c(
@@ -48,6 +49,7 @@ variables_KSSL <- function() {
     ),
     stringsAsFactors = FALSE
   )
+  # nolint end
 }
 
 #' Fix several inconsistencies in horizon depths
@@ -276,11 +278,9 @@ extract_soils_KSSL <- function(
   tmp <- vars_KSSL[vars_KSSL[["type"]] == "depth", "name", drop = TRUE]
   vars_depth <- intersect(tmp, vars_request)
   vars_bylayer <- setdiff(vars_request, tmp)
+  var_output <- vars_bylayer
 
   var_stxt3 <- c("sand_total", "silt_total", "clay_total")
-  var_stxt <- intersect(var_stxt3, vars_request)
-  var_others <- setdiff(vars_request, c(var_stxt, vars_depth))
-  var_output <- vars_bylayer
 
   unit_id <- "pedon_key"
   var_hid <- c(unit_id, "layer_key", "layer_sequence")
@@ -542,14 +542,13 @@ extract_soils_KSSL <- function(
         icolumn_adjust = 3
       )
 
-      var_others2 <- setdiff(vars_bylayer, var_stxt3)
+      vars_round <- setdiff(vars_bylayer, var_stxt3)
 
     } else {
-      var_others2 <- vars_bylayer
+      vars_round <- vars_bylayer
     }
 
-    var_others2 <- intersect(var_others2, colnames(res_soils))
-    res_soils[, var_others2] <- round(res_soils[, var_others2], digits)
+    res_soils[, vars_round] <- round(res_soils[, vars_round], digits)
   }
 
 
@@ -599,4 +598,3 @@ extract_soils_KSSL <- function(
     table_texture = locs_table_texture
   )
 }
-

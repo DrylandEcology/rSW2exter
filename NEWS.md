@@ -1,6 +1,7 @@
 # rSW2exter v0.3.2
 * `"SOLUS100"` renamed layer to `"resdept_all_cm"` (previously, `"resdept_cm"`).
-* New `fixHorizonDepths()` to fix several types of inconsistencies in
+* `fetch_mukeys_spatially_NRCS_SDA()` now corrects invalid geometries.
+* New `fixHorizonDepths()` fixes several types of inconsistencies in
   horizon depths.
 * New functionality to download, query, and extract soils data from `KSSL`
     * `variables_KSSL()` provides meta data.

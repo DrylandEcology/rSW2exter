@@ -519,7 +519,8 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       soilDB::SDA_spatialQuery(
         geom = locations[ids_chunks[[k]], ], # sf since soilDB v2.6.10
         db = db,
-        what = "mupolygon" # since soilDB v2.6.3
+        what = "mupolygon", # since soilDB v2.6.3
+        geomAcres = FALSE # since soilDB v2.8.2
       ),
       silent = FALSE
     )
@@ -532,7 +533,10 @@ fetch_mukeys_spatially_NRCS_SDA <- function(
       # Extract mukey for each location because
       # return values of `SDA_spatialQuery` are not ordered by input `geom`
       # (unless `byFeature = TRUE` since v2.6.10)
-      tmp <- sf::st_intersects(locations[ids_chunks[[k]], ], res_mukeys)
+      tmp <- sf::st_intersects(
+        locations[ids_chunks[[k]], ],
+        sf::st_make_valid(res_mukeys)
+      )
       ltmp <- lengths(tmp)
 
       if (any(ltmp == 0L, ltmp > 1L)) {

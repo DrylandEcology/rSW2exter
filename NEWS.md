@@ -1,4 +1,4 @@
-# rSW2exter v0.3.2-9000
+# rSW2exter v0.3.2
 * `"SOLUS100"` renamed layer to `"resdept_all_cm"` (previously, `"resdept_cm"`).
 * New `fixHorizonDepths()` to fix several types of inconsistencies in
   horizon depths.

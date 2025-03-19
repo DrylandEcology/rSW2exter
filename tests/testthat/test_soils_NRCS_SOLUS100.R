@@ -8,7 +8,7 @@ test_that("Extract soils from SOLUS100", {
   path_solus100 <- file.path("..", "test_data", "SOLUS100")
   dir.create(path_solus100, recursive = TRUE, showWarnings = FALSE)
 
-  vars_solus100 <- c("resdept_cm", "sandtotal", "silttotal", "claytotal")
+  vars_solus100 <- c("resdept_all_cm", "sandtotal", "silttotal", "claytotal")
   req_depths <- c(0, 5, 150)
   requested_layer_depths <- c(5, 15, 30, 100, 150, 200)
 

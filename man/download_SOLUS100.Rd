@@ -6,8 +6,8 @@
 \usage{
 download_SOLUS100(
   path = ".",
-  vars = c("resdept_cm", "dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal",
-    "soc"),
+  vars = c("resdept_all_cm", "dbovendry", "fragvol", "sandtotal", "silttotal",
+    "claytotal", "soc"),
   depths = depth_profile_SOLUS100(),
   stat = c("p", "l", "h", "rpi"),
   url_solus100 = "https://storage.googleapis.com/solus100pub/",
@@ -39,7 +39,7 @@ Download soil layers from \code{SOLUS100}
 \dontrun{
 if (curl::has_internet()) {
   dir_tmp <- tempdir()
-  fsolus <- download_SOLUS100(dir_tmp, vars = "resdept_cm")
+  fsolus <- download_SOLUS100(dir_tmp, vars = "resdept_all_cm")
   terra::plot(terra::rast(file.path(dir_tmp, fsolus)))
   unlink(file.path(dir_tmp, fsolus)) # clean up
 }

@@ -9,7 +9,7 @@ extract_soils_SOLUS100(
   x,
   crs = 4326,
   vars = c("dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal", "soc"),
-  var_depth = "resdept_cm",
+  var_depth = "resdept_all_cm",
   depths = depth_profile_SOLUS100(),
   stat = c("p", "l", "h", "rpi"),
   path = ".",
@@ -130,7 +130,7 @@ for \pkg{SOILWAT2} applications
 \dontrun{
 if (curl::has_internet()) {
 path_solus100 <- tempdir()
-req_vars <- c("resdept_cm", "sandtotal")
+req_vars <- c("resdept_all_cm", "sandtotal")
 req_depths <- 0
 
 ## Download data

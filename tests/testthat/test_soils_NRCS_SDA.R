@@ -176,6 +176,15 @@ test_that("Extract soils from NRCS SDA", {
   expect_identical(tmp[["mukeys"]], mukeys[ids])
 
 
+  # Check that invalid geometries do not result in error
+  # 2025-Mar-18: this location triggered an error because
+  # the returned geometry by soilDB::SDA_spatialQuery() was invalid which
+  # failed the call to sf::st_intersects()
+  expect_named(
+    fetch_mukeys_spatially_NRCS_SDA(c(-121.85605, 45.4287)),
+    expected = c("ref", "mukeys")
+  )
+
 
   #--- Extract soils ------
   # Example 1: extract soils by mukey values

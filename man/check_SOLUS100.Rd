@@ -6,8 +6,8 @@
 \usage{
 check_SOLUS100(
   path = ".",
-  vars = c("resdept_cm", "dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal",
-    "soc"),
+  vars = c("resdept_all_cm", "dbovendry", "fragvol", "sandtotal", "silttotal",
+    "claytotal", "soc"),
   depths = depth_profile_SOLUS100(),
   stat = c("p", "l", "h", "rpi")
 )
@@ -27,14 +27,14 @@ Check local copy of \code{SOLUS100}
 }
 \examples{
 dir_tmp <- tempdir()
-has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_cm")
+has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 
 \dontrun{
 if (curl::has_internet()) {
-  fns_solus <- download_SOLUS100(dir_tmp, vars = "resdept_cm")
+  fns_solus <- download_SOLUS100(dir_tmp, vars = "resdept_all_cm")
   files_solus <- file.path(dir_tmp, fns_solus)
   terra::plot(terra::rast(files_solus))
-  has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_cm")
+  has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 
   unlink(files_solus) # clean up
 }

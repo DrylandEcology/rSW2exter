@@ -10,6 +10,7 @@ calculate_soil_depth_NRCS(
   restrict_by_ec_or_ph = TRUE,
   var_site_id = "COKEY",
   var_horizon = "Horizon_No",
+  var_horizon_top_depth = "hzdept_r",
   var_horizon_lower_depth = "hzdepb_r",
   var_restrictions = c("Horizon_depth", "RootZoneRestriction_depth", "Bedrock_depth"),
   var_soiltexture = c("sand", "clay", "silt")
@@ -34,8 +35,11 @@ contains the unique location identifiers.}
 contains the horizon/layer numbers where the shallowest horizon/layer
 is number one.}
 
+\item{var_horizon_top_depth}{A character string. The column name of
+\code{x} that contains the upper/top depth limit of horizons/layers.}
+
 \item{var_horizon_lower_depth}{A character string. The column name of
-\code{x} that contains the lower depth limit of horizons/layers.}
+\code{x} that contains the lower/bottom depth limit of horizons/layers.}
 
 \item{var_restrictions}{A vector of character strings. The column names of
 \code{x} that contain depth restrictions, e.g., bedrock.}

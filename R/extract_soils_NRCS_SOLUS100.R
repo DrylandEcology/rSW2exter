@@ -22,7 +22,7 @@ variables_SOLUS100 <- function() {
   data.frame(
     type = c("depth", "depth", rep("property", 18L)),
     name = c(
-      "anylithicdpt_cm", "resdept_cm",
+      "anylithicdpt_cm", "resdept_all_cm",
       "caco3",
       "cec7",
       "claytotal",
@@ -109,14 +109,14 @@ filenames_SOLUS100 <- function(vars, depths, stat) {
 #'
 #' @examples
 #' dir_tmp <- tempdir()
-#' has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_cm")
+#' has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 #'
 #' \dontrun{
 #' if (curl::has_internet()) {
-#'   fns_solus <- download_SOLUS100(dir_tmp, vars = "resdept_cm")
+#'   fns_solus <- download_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 #'   files_solus <- file.path(dir_tmp, fns_solus)
 #'   terra::plot(terra::rast(files_solus))
-#'   has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_cm")
+#'   has_solus <- check_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 #'
 #'   unlink(files_solus) # clean up
 #' }
@@ -127,7 +127,7 @@ filenames_SOLUS100 <- function(vars, depths, stat) {
 check_SOLUS100 <- function(
   path = ".",
   vars = c(
-    "resdept_cm",
+    "resdept_all_cm",
     "dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal", "soc"
   ),
   depths = depth_profile_SOLUS100(),
@@ -169,7 +169,7 @@ check_SOLUS100 <- function(
 #' \dontrun{
 #' if (curl::has_internet()) {
 #'   dir_tmp <- tempdir()
-#'   fsolus <- download_SOLUS100(dir_tmp, vars = "resdept_cm")
+#'   fsolus <- download_SOLUS100(dir_tmp, vars = "resdept_all_cm")
 #'   terra::plot(terra::rast(file.path(dir_tmp, fsolus)))
 #'   unlink(file.path(dir_tmp, fsolus)) # clean up
 #' }
@@ -180,7 +180,7 @@ check_SOLUS100 <- function(
 download_SOLUS100 <- function(
   path = ".",
   vars = c(
-    "resdept_cm",
+    "resdept_all_cm",
     "dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal", "soc"
   ),
   depths = depth_profile_SOLUS100(),
@@ -378,7 +378,7 @@ fetch_soils_from_SOLUS100 <- function(
 #' \dontrun{
 #' if (curl::has_internet()) {
 #' path_solus100 <- tempdir()
-#' req_vars <- c("resdept_cm", "sandtotal")
+#' req_vars <- c("resdept_all_cm", "sandtotal")
 #' req_depths <- 0
 #'
 #' ## Download data
@@ -425,7 +425,7 @@ extract_soils_SOLUS100 <- function(
   vars = c(
     "dbovendry", "fragvol", "sandtotal", "silttotal", "claytotal", "soc"
   ),
-  var_depth = "resdept_cm",
+  var_depth = "resdept_all_cm",
   depths = depth_profile_SOLUS100(),
   stat = c("p", "l", "h", "rpi"),
   path = ".",

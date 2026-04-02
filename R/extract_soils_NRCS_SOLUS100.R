@@ -825,6 +825,7 @@ extract_soils_SOLUS100 <- function(
   #--- * Create texture output table ------
 
   # Convert to wide format (one row for each point location)
+  dimnames(res)[c(1L, 3L)] <- list(NULL, NULL)
   locs_table_texture <- reshape2::acast(reshape2::melt(res), Var1 ~ Var3 + Var2)
   colnames(locs_table_texture) <- paste0(
     rep(vars_bylayer, times = N_layers),

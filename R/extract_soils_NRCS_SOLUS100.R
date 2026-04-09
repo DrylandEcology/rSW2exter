@@ -216,6 +216,7 @@ download_SOLUS100 <- function(
       utils::download.file(
         url = paste0(url_solus100, todo_filenames[[k]]),
         destfile = file.path(path, todo_filenames[[k]]),
+        mode = "wb",
         quiet = TRUE
       )
     )

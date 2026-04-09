@@ -986,6 +986,7 @@ extract_soils_NRCS_SDA <- function(
     row_id = NA,
     unit_id = NA,
     source = db,
+    # nolint start: coalesce_linter.
     mukey = if (is.null(mukeys)) {
       fetch_mukeys_spatially_NRCS_SDA(
         x = x,
@@ -997,6 +998,7 @@ extract_soils_NRCS_SDA <- function(
     } else {
       mukeys
     },
+    # nolint end: coalesce_linter.
     cokey = NA,
     compname = NA,
     compkind = NA,

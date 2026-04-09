@@ -1,4 +1,5 @@
-# rSW2exter v0.3.3-9000
+# rSW2exter v0.3.3
+* `extract_soils_SOLUS100()` no longer fails if only some soil layers are named.
 
 # rSW2exter v0.3.2
 * `"SOLUS100"` renamed layer to `"resdept_all_cm"` (previously, `"resdept_cm"`).
